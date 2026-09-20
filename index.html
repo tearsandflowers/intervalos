@@ -1,0 +1,663 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Intervalos — práctica musical</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500&family=DM+Sans:wght@400;500&display=swap" rel="stylesheet">
+<style>
+/* ---- Variables de color y tipografía ---- */
+:root{
+  --bg:#12100E;
+  --surface:#1C1916;
+  --surface-2:#252118;
+  --text:#EFE9E0;
+  --muted:rgba(239,233,224,.55);
+  --faint:rgba(239,233,224,.32);
+  --accent:#E0A458;
+  --accent-soft:rgba(224,164,88,.14);
+  --divider:rgba(239,233,224,.12);
+  --radius:12px;
+  --radius-lg:16px;
+  --serif:'Fraunces',Georgia,serif;
+  --sans:'DM Sans',-apple-system,BlinkMacSystemFont,sans-serif;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+}
+*,*::before,*::after{box-sizing:inherit;}
+
+html,body{height:100%;}
+body{
+  margin:0;
+  background:var(--bg);
+  color:var(--text);
+  font-family:var(--sans);
+  -webkit-font-smoothing:antialiased;
+}
+
+/* ---- Contenedor principal ---- */
+.app{
+  max-width:440px;
+  margin:0 auto;
+  min-height:100%;
+  display:flex;
+  flex-direction:column;
+  padding:28px 20px 24px;
+}
+
+/* ---- Pantallas ---- */
+.screen{display:none;flex:1;flex-direction:column;}
+.screen.active{display:flex;}
+
+/* ---- Encabezado ---- */
+.title{
+  font-family:var(--serif);
+  font-weight:400;
+  font-size:34px;
+  letter-spacing:-.02em;
+  line-height:1.1;
+  margin:0;
+}
+.subtitle{
+  font-size:14px;
+  color:var(--muted);
+  line-height:1.5;
+  margin:8px 0 0;
+}
+
+/* ---- Tarjetas de estadísticas ---- */
+.stats{display:flex;gap:10px;margin-top:24px;}
+.stat{
+  flex:1;
+  background:var(--surface);
+  border-radius:var(--radius);
+  padding:13px 15px;
+}
+.stat-value{font-family:var(--serif);font-size:24px;font-weight:500;line-height:1;}
+.stat-label{font-size:11px;color:var(--muted);margin-top:5px;}
+
+/* ---- Etiqueta de sección ---- */
+.section-label{
+  font-size:11px;
+  font-weight:500;
+  color:var(--muted);
+  text-transform:uppercase;
+  letter-spacing:.1em;
+  margin:28px 0 10px;
+}
+
+/* ---- Rejilla de intervalos ---- */
+.interval-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.interval{
+  background:var(--surface);
+  border:1px solid transparent;
+  border-radius:var(--radius-lg);
+  padding:14px;
+  cursor:pointer;
+  text-align:left;
+  color:var(--text);
+  font-family:var(--sans);
+  transition:background .15s,border-color .15s;
+}
+.interval:hover{background:var(--surface-2);}
+.interval.selected{
+  background:var(--accent-soft);
+  border-color:var(--accent);
+}
+.interval-ordinal{font-size:12px;font-weight:500;color:var(--accent);}
+.interval-name{font-size:15px;font-weight:500;margin-top:2px;}
+.interval-example{font-size:12px;color:var(--muted);margin-top:2px;}
+
+/* ---- Selector de orden ---- */
+.mode-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.mode{
+  background:var(--surface);
+  border:1px solid transparent;
+  border-radius:var(--radius-lg);
+  padding:13px 14px;
+  cursor:pointer;
+  text-align:left;
+  color:var(--text);
+  font-family:var(--sans);
+  transition:background .15s,border-color .15s;
+}
+.mode:hover{background:var(--surface-2);}
+.mode.selected{background:var(--accent-soft);border-color:var(--accent);}
+.mode-name{font-size:14px;font-weight:500;}
+.mode-desc{font-size:11px;color:var(--muted);margin-top:3px;line-height:1.4;}
+
+/* ---- Botones ---- */
+.btn{
+  width:100%;
+  height:50px;
+  border-radius:var(--radius);
+  font-family:var(--serif);
+  font-size:16px;
+  font-weight:500;
+  cursor:pointer;
+  transition:background .15s;
+}
+.btn-primary{
+  border:1px solid var(--accent);
+  background:transparent;
+  color:var(--accent);
+}
+.btn-primary:hover{background:var(--accent-soft);}
+.btn-ghost{
+  border:1px solid var(--divider);
+  background:transparent;
+  color:var(--text);
+}
+.btn-ghost:hover{background:rgba(239,233,224,.06);}
+
+.spacer{flex:1;min-height:20px;}
+
+/* ---- Barra superior de práctica ---- */
+.practice-top{display:flex;align-items:center;gap:12px;}
+.close-btn{
+  width:38px;height:38px;flex-shrink:0;
+  border-radius:var(--radius);
+  border:1px solid var(--divider);
+  background:transparent;
+  color:var(--text);
+  font-size:17px;
+  line-height:1;
+  cursor:pointer;
+}
+.close-btn:hover{background:rgba(239,233,224,.06);}
+.progress-track{
+  flex:1;height:4px;
+  background:var(--surface-2);
+  border-radius:999px;
+  overflow:hidden;
+}
+.progress-fill{
+  height:100%;
+  background:var(--accent);
+  border-radius:999px;
+  width:0%;
+  transition:width .3s ease;
+}
+.progress-count{font-size:12px;color:var(--muted);flex-shrink:0;}
+
+/* ---- Zona de pregunta ---- */
+.question-area{
+  flex:1;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  gap:26px;
+  padding:20px 0;
+}
+.root-note{
+  width:92px;height:92px;
+  border-radius:var(--radius-lg);
+  background:var(--surface);
+  border:1px solid var(--accent);
+  color:var(--accent);
+  display:flex;align-items:center;justify-content:center;
+  font-family:var(--serif);
+  font-size:27px;
+  font-weight:500;
+}
+.root-label{font-size:11px;color:var(--muted);margin-top:8px;text-align:center;}
+.question-text{
+  font-size:18px;
+  text-align:center;
+  line-height:1.5;
+  max-width:290px;
+}
+.question-text em{font-style:normal;color:var(--accent);font-weight:500;}
+
+/* ---- Opciones de respuesta ---- */
+.options{display:grid;grid-template-columns:1fr 1fr;gap:10px;width:100%;}
+.option{
+  height:76px;
+  border-radius:var(--radius);
+  border:1px solid transparent;
+  background:var(--surface);
+  color:var(--text);
+  font-family:var(--serif);
+  font-size:22px;
+  font-weight:500;
+  cursor:pointer;
+  transition:all .15s;
+}
+.option:hover:not(:disabled){background:var(--surface-2);}
+.option:disabled{cursor:default;}
+.option.correct{
+  background:var(--accent-soft);
+  border-color:var(--accent);
+  color:var(--accent);
+}
+.option.wrong{
+  background:var(--surface-2);
+  color:var(--faint);
+}
+.option.dim{opacity:.4;}
+
+/* ---- Retroalimentación ---- */
+.feedback-zone{min-height:82px;display:flex;flex-direction:column;gap:12px;justify-content:flex-end;}
+.feedback-text{text-align:center;font-size:14px;font-weight:500;}
+.feedback-text.ok{color:var(--accent);}
+.feedback-text.no{color:var(--muted);}
+
+/* ---- Pantalla de resultado ---- */
+.result{
+  flex:1;
+  display:flex;flex-direction:column;
+  align-items:center;justify-content:center;
+  text-align:center;gap:14px;
+}
+.result-label{font-size:13px;color:var(--muted);}
+.result-score{
+  font-family:var(--serif);
+  font-size:60px;
+  font-weight:500;
+  line-height:1;
+}
+.result-message{font-size:15px;color:var(--muted);max-width:270px;line-height:1.5;}
+.result-actions{display:flex;gap:10px;width:100%;margin-top:14px;}
+.result-actions .btn{flex:1;}
+
+@media (max-width:360px){
+  .root-note{width:80px;height:80px;font-size:24px;}
+  .option{height:66px;font-size:20px;}
+}
+</style>
+</head>
+<body>
+
+<div class="app">
+
+  <!-- ============ PANTALLA: INICIO ============ -->
+  <section id="screen-home" class="screen active">
+    <h1 class="title">Intervalos</h1>
+    <p class="subtitle">Elige un intervalo y recorre todo el ciclo de Do a Do.</p>
+
+    <div class="stats" id="stats" style="display:none;">
+      <div class="stat">
+        <div class="stat-value" id="stat-streak">0</div>
+        <div class="stat-label">Racha actual</div>
+      </div>
+      <div class="stat">
+        <div class="stat-value" id="stat-accuracy">—</div>
+        <div class="stat-label">Precisión</div>
+      </div>
+    </div>
+
+    <div class="section-label">Elige un intervalo</div>
+    <div class="interval-grid" id="interval-grid"></div>
+
+    <div class="section-label">Orden de las preguntas</div>
+    <div class="mode-grid" id="mode-grid"></div>
+
+    <div class="spacer"></div>
+    <button class="btn btn-primary" id="btn-start">Empezar práctica</button>
+  </section>
+
+  <!-- ============ PANTALLA: PRÁCTICA ============ -->
+  <section id="screen-practice" class="screen">
+    <div class="practice-top">
+      <button class="close-btn" id="btn-exit" aria-label="Salir">&#10005;</button>
+      <div class="progress-track"><div class="progress-fill" id="progress-fill"></div></div>
+      <span class="progress-count" id="progress-count">1/7</span>
+    </div>
+
+    <div class="question-area">
+      <div>
+        <div class="root-note" id="root-note">DO</div>
+        <div class="root-label">nota de referencia</div>
+      </div>
+      <div class="question-text" id="question-text"></div>
+      <div class="options" id="options"></div>
+    </div>
+
+    <div class="feedback-zone" id="feedback-zone"></div>
+  </section>
+
+  <!-- ============ PANTALLA: RESULTADO ============ -->
+  <section id="screen-result" class="screen">
+    <div class="result">
+      <div class="result-label">Ciclo completado</div>
+      <div class="result-score" id="result-score">0/7</div>
+      <div class="result-message" id="result-message"></div>
+      <div class="result-actions">
+        <button class="btn btn-primary" id="btn-retry">Repetir</button>
+        <button class="btn btn-ghost" id="btn-home">Elegir intervalo</button>
+      </div>
+    </div>
+  </section>
+
+</div>
+
+<script>
+/* =========================================================
+   DATOS BASE
+   ========================================================= */
+
+// La escala de Do mayor. El índice de cada nota importa:
+// sumando "pasos" al índice obtenemos el intervalo.
+const ESCALA = ['DO','RE','MI','FA','SOL','LA','SI'];
+
+// Cada intervalo avanza un número fijo de pasos dentro de la escala.
+// Una segunda avanza 1 nota, una tercera 2, etc.
+const INTERVALOS = [
+  { clave:'2da', ordinal:'2ª', nombre:'Segunda', minuscula:'segunda', pasos:1 },
+  { clave:'3ra', ordinal:'3ª', nombre:'Tercera', minuscula:'tercera', pasos:2 },
+  { clave:'4ta', ordinal:'4ª', nombre:'Cuarta',  minuscula:'cuarta',  pasos:3 },
+  { clave:'5ta', ordinal:'5ª', nombre:'Quinta',  minuscula:'quinta',  pasos:4 },
+  { clave:'6ta', ordinal:'6ª', nombre:'Sexta',   minuscula:'sexta',   pasos:5 },
+  { clave:'7ma', ordinal:'7ª', nombre:'Séptima', minuscula:'séptima', pasos:6 },
+];
+
+// Dos formas de recorrer la octava. En ambas aparecen las 7 notas
+// exactamente una vez: lo único que cambia es el orden.
+const MODOS = [
+  { clave:'orden',     nombre:'En orden',  desc:'Encadenado desde Do' },
+  { clave:'aleatorio', nombre:'Aleatorio', desc:'Octava completa, revuelta' },
+];
+
+const CLAVE_GUARDADO = 'intervalos-stats-v1';
+const TOTAL_PREGUNTAS = 7;
+
+/* =========================================================
+   ESTADO DE LA APLICACIÓN
+   ========================================================= */
+
+let intervaloElegido = '2da';
+let modoElegido = 'orden';
+let sesion = null;   // se llena al empezar la práctica
+let stats = { racha:0, mejorRacha:0, aciertos:0, respondidas:0, sesiones:0 };
+
+/* =========================================================
+   GUARDADO EN EL NAVEGADOR
+   ========================================================= */
+
+function cargarStats(){
+  try{
+    const guardado = localStorage.getItem(CLAVE_GUARDADO);
+    if(guardado) stats = Object.assign(stats, JSON.parse(guardado));
+  }catch(e){ /* si falla, seguimos con stats en cero */ }
+}
+
+function guardarStats(){
+  try{ localStorage.setItem(CLAVE_GUARDADO, JSON.stringify(stats)); }
+  catch(e){ /* modo privado puede bloquear el guardado */ }
+}
+
+/* =========================================================
+   UTILIDADES
+   ========================================================= */
+
+// Devuelve una copia desordenada del arreglo (algoritmo Fisher-Yates)
+function revolver(arreglo){
+  const copia = arreglo.slice();
+  for(let i = copia.length - 1; i > 0; i--){
+    const j = Math.floor(Math.random() * (i + 1));
+    [copia[i], copia[j]] = [copia[j], copia[i]];
+  }
+  return copia;
+}
+
+function $(id){ return document.getElementById(id); }
+
+function mostrarPantalla(nombre){
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  $('screen-' + nombre).classList.add('active');
+  window.scrollTo(0, 0);
+}
+
+/* =========================================================
+   PANTALLA DE INICIO
+   ========================================================= */
+
+function pintarIntervalos(){
+  const contenedor = $('interval-grid');
+  contenedor.innerHTML = '';
+
+  INTERVALOS.forEach(def => {
+    const boton = document.createElement('button');
+    boton.className = 'interval' + (def.clave === intervaloElegido ? ' selected' : '');
+    boton.innerHTML =
+      '<div class="interval-ordinal">' + def.ordinal + '</div>' +
+      '<div class="interval-name">' + def.nombre + '</div>' +
+      '<div class="interval-example">Ej: Do → ' + ESCALA[def.pasos] + '</div>';
+
+    boton.addEventListener('click', () => {
+      intervaloElegido = def.clave;
+      pintarIntervalos();
+    });
+
+    contenedor.appendChild(boton);
+  });
+}
+
+function pintarModos(){
+  const contenedor = $('mode-grid');
+  contenedor.innerHTML = '';
+
+  MODOS.forEach(def => {
+    const boton = document.createElement('button');
+    boton.className = 'mode' + (def.clave === modoElegido ? ' selected' : '');
+    boton.innerHTML =
+      '<div class="mode-name">' + def.nombre + '</div>' +
+      '<div class="mode-desc">' + def.desc + '</div>';
+
+    boton.addEventListener('click', () => {
+      modoElegido = def.clave;
+      pintarModos();
+    });
+
+    contenedor.appendChild(boton);
+  });
+}
+
+function pintarStats(){
+  if(stats.sesiones > 0){
+    $('stats').style.display = 'flex';
+    $('stat-streak').textContent = stats.racha;
+    $('stat-accuracy').textContent = stats.respondidas > 0
+      ? Math.round(stats.aciertos / stats.respondidas * 100) + '%'
+      : '—';
+  } else {
+    $('stats').style.display = 'none';
+  }
+}
+
+/* =========================================================
+   CONSTRUCCIÓN DE LA SESIÓN
+   ========================================================= */
+
+// Devuelve los índices de las 7 notas que servirán de raíz, en el orden
+// que corresponda al modo elegido.
+function construirRaices(def){
+  if(modoElegido === 'aleatorio'){
+    // Las 7 notas revueltas: sigue siendo una octava completa.
+    return revolver([0, 1, 2, 3, 4, 5, 6]);
+  }
+
+  // Modo en orden: cada respuesta se vuelve la raíz de la siguiente pregunta.
+  // Como 7 es primo, cualquier intervalo recorre las 7 notas sin repetir.
+  const raices = [];
+  let indice = 0;   // empezamos siempre en DO
+  for(let i = 0; i < 7; i++){
+    raices.push(indice);
+    indice = (indice + def.pasos) % 7;   // el % hace que la escala dé la vuelta
+  }
+  return raices;
+}
+
+function construirPreguntas(){
+  const def = INTERVALOS.find(d => d.clave === intervaloElegido) || INTERVALOS[0];
+
+  return construirRaices(def).map(indice => {
+    const raiz = ESCALA[indice];
+    const correcta = ESCALA[(indice + def.pasos) % 7];
+
+    // Tres notas incorrectas al azar, más la correcta, todo revuelto
+    const distractores = revolver(ESCALA.filter(n => n !== correcta)).slice(0, 3);
+    const opciones = revolver([correcta, ...distractores]);
+
+    return { raiz, intervalo: def.minuscula, correcta, opciones };
+  });
+}
+
+function empezarPractica(){
+  sesion = {
+    preguntas: construirPreguntas(),
+    indice: 0,
+    puntaje: 0,
+    respondida: false,
+    elegida: null
+  };
+  mostrarPantalla('practice');
+  pintarPregunta();
+}
+
+/* =========================================================
+   PANTALLA DE PRÁCTICA
+   ========================================================= */
+
+function pintarPregunta(){
+  const p = sesion.preguntas[sesion.indice];
+
+  // Barra de progreso
+  const avance = (sesion.indice + (sesion.respondida ? 1 : 0)) / TOTAL_PREGUNTAS;
+  $('progress-fill').style.width = Math.round(avance * 100) + '%';
+  $('progress-count').textContent = (sesion.indice + 1) + '/' + TOTAL_PREGUNTAS;
+
+  // Nota de referencia y enunciado
+  $('root-note').textContent = p.raiz;
+  $('question-text').innerHTML = '¿Cuál es la <em>' + p.intervalo + '</em> de ' + p.raiz + '?';
+
+  // Opciones
+  const cont = $('options');
+  cont.innerHTML = '';
+
+  p.opciones.forEach(nota => {
+    const boton = document.createElement('button');
+    boton.className = 'option';
+    boton.textContent = nota;
+    boton.disabled = sesion.respondida;
+
+    if(sesion.respondida){
+      if(nota === p.correcta)            boton.classList.add('correct');
+      else if(nota === sesion.elegida)   boton.classList.add('wrong');
+      else                               boton.classList.add('dim');
+    } else {
+      boton.addEventListener('click', () => responder(nota));
+    }
+
+    cont.appendChild(boton);
+  });
+
+  pintarRetroalimentacion();
+}
+
+function responder(nota){
+  if(sesion.respondida) return;
+
+  const p = sesion.preguntas[sesion.indice];
+  const acerto = nota === p.correcta;
+
+  // Actualizamos estadísticas
+  stats.respondidas += 1;
+  if(acerto){
+    stats.aciertos += 1;
+    stats.racha += 1;
+    stats.mejorRacha = Math.max(stats.mejorRacha, stats.racha);
+    sesion.puntaje += 1;
+  } else {
+    stats.racha = 0;
+  }
+  guardarStats();
+
+  sesion.respondida = true;
+  sesion.elegida = nota;
+  pintarPregunta();
+}
+
+function pintarRetroalimentacion(){
+  const zona = $('feedback-zone');
+  zona.innerHTML = '';
+  if(!sesion.respondida) return;
+
+  const p = sesion.preguntas[sesion.indice];
+  const acerto = sesion.elegida === p.correcta;
+  const esUltima = sesion.indice + 1 >= TOTAL_PREGUNTAS;
+
+  const texto = document.createElement('div');
+  texto.className = 'feedback-text ' + (acerto ? 'ok' : 'no');
+  texto.textContent = acerto ? '¡Correcto!' : 'Era ' + p.correcta;
+
+  const boton = document.createElement('button');
+  boton.className = 'btn btn-primary';
+  boton.textContent = esUltima ? 'Ver resultado' : 'Siguiente';
+  boton.addEventListener('click', siguientePregunta);
+
+  zona.appendChild(texto);
+  zona.appendChild(boton);
+}
+
+function siguientePregunta(){
+  if(sesion.indice + 1 >= TOTAL_PREGUNTAS){
+    stats.sesiones += 1;
+    guardarStats();
+    mostrarResultado();
+  } else {
+    sesion.indice += 1;
+    sesion.respondida = false;
+    sesion.elegida = null;
+    pintarPregunta();
+  }
+}
+
+/* =========================================================
+   PANTALLA DE RESULTADO
+   ========================================================= */
+
+function mostrarResultado(){
+  const puntaje = sesion.puntaje;
+  const proporcion = puntaje / TOTAL_PREGUNTAS;
+
+  let mensaje;
+  if(proporcion >= 0.9)      mensaje = 'Excelente oído para los intervalos.';
+  else if(proporcion >= 0.7) mensaje = 'Muy bien, sigue así.';
+  else if(proporcion >= 0.5) mensaje = 'Vas bien, sigue practicando.';
+  else                       mensaje = 'Repite para afianzar los intervalos.';
+
+  $('result-score').textContent = puntaje + '/' + TOTAL_PREGUNTAS;
+  $('result-message').textContent = mensaje;
+  mostrarPantalla('result');
+}
+
+function volverAlInicio(){
+  sesion = null;
+  pintarStats();
+  pintarIntervalos();
+  pintarModos();
+  mostrarPantalla('home');
+}
+
+/* =========================================================
+   ARRANQUE
+   ========================================================= */
+
+$('btn-start').addEventListener('click', empezarPractica);
+$('btn-exit').addEventListener('click', volverAlInicio);
+$('btn-home').addEventListener('click', volverAlInicio);
+$('btn-retry').addEventListener('click', empezarPractica);
+
+cargarStats();
+pintarStats();
+pintarIntervalos();
+pintarModos();
+</script>
+
+</body>
+</html>
