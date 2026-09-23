@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Intervalos — práctica musical</title>
+<title>Práctica musical — escalas e intervalos</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500&family=DM+Sans:wght@400;500&display=swap" rel="stylesheet">
@@ -18,6 +18,7 @@
   --faint:rgba(239,233,224,.32);
   --accent:#E0A458;
   --accent-soft:rgba(224,164,88,.14);
+  --error:#E08A7E;
   --divider:rgba(239,233,224,.12);
   --radius:12px;
   --radius-lg:16px;
@@ -52,7 +53,7 @@ body{
 .screen{display:none;flex:1;flex-direction:column;}
 .screen.active{display:flex;}
 
-/* ---- Encabezado ---- */
+/* ---- Encabezados ---- */
 .title{
   font-family:var(--serif);
   font-weight:400;
@@ -61,37 +62,45 @@ body{
   line-height:1.1;
   margin:0;
 }
-.subtitle{
-  font-size:14px;
-  color:var(--muted);
-  line-height:1.5;
-  margin:8px 0 0;
-}
+.title-sm{font-size:28px;}
+.subtitle{font-size:14px;color:var(--muted);line-height:1.5;margin:8px 0 0;}
+.header-row{display:flex;align-items:center;gap:14px;}
 
-/* ---- Tarjetas de estadísticas ---- */
-.stats{display:flex;gap:10px;margin-top:24px;}
-.stat{
-  flex:1;
+/* ---- Menú de juegos ---- */
+.game-list{display:flex;flex-direction:column;gap:12px;margin-top:28px;}
+.game-card{
   background:var(--surface);
-  border-radius:var(--radius);
-  padding:13px 15px;
+  border:1px solid transparent;
+  border-radius:var(--radius-lg);
+  padding:20px;
+  text-align:left;
+  color:var(--text);
+  font-family:var(--sans);
+  cursor:pointer;
+  transition:background .15s,border-color .15s;
 }
+.game-card:hover{background:var(--surface-2);border-color:var(--divider);}
+.game-tag{font-size:11px;font-weight:500;color:var(--accent);text-transform:uppercase;letter-spacing:.1em;}
+.game-name{font-family:var(--serif);font-size:26px;margin-top:6px;}
+.game-desc{font-size:13px;color:var(--muted);margin-top:6px;line-height:1.5;}
+
+/* ---- Estadísticas ---- */
+.stats{display:flex;gap:10px;margin-top:22px;}
+.stat{flex:1;background:var(--surface);border-radius:var(--radius);padding:13px 15px;}
 .stat-value{font-family:var(--serif);font-size:24px;font-weight:500;line-height:1;}
 .stat-label{font-size:11px;color:var(--muted);margin-top:5px;}
 
 /* ---- Etiqueta de sección ---- */
 .section-label{
-  font-size:11px;
-  font-weight:500;
-  color:var(--muted);
-  text-transform:uppercase;
-  letter-spacing:.1em;
-  margin:28px 0 10px;
+  font-size:11px;font-weight:500;color:var(--muted);
+  text-transform:uppercase;letter-spacing:.1em;
+  margin:26px 0 10px;
 }
 
-/* ---- Rejilla de intervalos ---- */
-.interval-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
-.interval{
+/* ---- Tarjetas seleccionables (intervalos, orden, niveles) ---- */
+.interval-grid,.mode-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.level-list{display:flex;flex-direction:column;gap:10px;}
+.choice{
   background:var(--surface);
   border:1px solid transparent;
   border-radius:var(--radius-lg);
@@ -102,164 +111,126 @@ body{
   font-family:var(--sans);
   transition:background .15s,border-color .15s;
 }
-.interval:hover{background:var(--surface-2);}
-.interval.selected{
-  background:var(--accent-soft);
-  border-color:var(--accent);
-}
-.interval-ordinal{font-size:12px;font-weight:500;color:var(--accent);}
-.interval-name{font-size:15px;font-weight:500;margin-top:2px;}
-.interval-example{font-size:12px;color:var(--muted);margin-top:2px;}
+.choice:hover{background:var(--surface-2);}
+.choice.selected{background:var(--accent-soft);border-color:var(--accent);}
+.choice-tag{font-size:12px;font-weight:500;color:var(--accent);}
+.choice-name{font-size:15px;font-weight:500;margin-top:2px;}
+.choice-desc{font-size:12px;color:var(--muted);margin-top:3px;line-height:1.45;}
 
-/* ---- Selector de orden ---- */
-.mode-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
-.mode{
-  background:var(--surface);
+/* ---- Selector de escalas específicas ---- */
+.helper{font-size:12px;color:var(--muted);line-height:1.5;margin:-4px 0 4px;}
+.mini-label{font-size:11px;color:var(--faint);margin:12px 0 6px;}
+.chip-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;}
+.chip{
+  height:44px;border-radius:10px;
   border:1px solid transparent;
-  border-radius:var(--radius-lg);
-  padding:13px 14px;
-  cursor:pointer;
-  text-align:left;
-  color:var(--text);
-  font-family:var(--sans);
-  transition:background .15s,border-color .15s;
+  background:var(--surface);color:var(--text);
+  font-family:var(--serif);font-size:15px;font-weight:500;
+  cursor:pointer;transition:background .15s,border-color .15s;
 }
-.mode:hover{background:var(--surface-2);}
-.mode.selected{background:var(--accent-soft);border-color:var(--accent);}
-.mode-name{font-size:14px;font-weight:500;}
-.mode-desc{font-size:11px;color:var(--muted);margin-top:3px;line-height:1.4;}
+.chip:hover{background:var(--surface-2);}
+.chip.selected{background:var(--accent-soft);border-color:var(--accent);color:var(--accent);}
 
 /* ---- Botones ---- */
 .btn{
-  width:100%;
-  height:50px;
+  width:100%;height:50px;
   border-radius:var(--radius);
-  font-family:var(--serif);
-  font-size:16px;
-  font-weight:500;
-  cursor:pointer;
-  transition:background .15s;
+  font-family:var(--serif);font-size:16px;font-weight:500;
+  cursor:pointer;transition:background .15s;
 }
-.btn-primary{
-  border:1px solid var(--accent);
-  background:transparent;
-  color:var(--accent);
-}
+.btn-primary{border:1px solid var(--accent);background:transparent;color:var(--accent);}
 .btn-primary:hover{background:var(--accent-soft);}
-.btn-ghost{
-  border:1px solid var(--divider);
-  background:transparent;
-  color:var(--text);
-}
+.btn-ghost{border:1px solid var(--divider);background:transparent;color:var(--text);}
 .btn-ghost:hover{background:rgba(239,233,224,.06);}
-
 .spacer{flex:1;min-height:20px;}
 
-/* ---- Barra superior de práctica ---- */
-.practice-top{display:flex;align-items:center;gap:12px;}
-.close-btn{
+.icon-btn{
   width:38px;height:38px;flex-shrink:0;
   border-radius:var(--radius);
   border:1px solid var(--divider);
-  background:transparent;
-  color:var(--text);
-  font-size:17px;
-  line-height:1;
-  cursor:pointer;
+  background:transparent;color:var(--text);
+  font-size:17px;line-height:1;cursor:pointer;
 }
-.close-btn:hover{background:rgba(239,233,224,.06);}
-.progress-track{
-  flex:1;height:4px;
-  background:var(--surface-2);
-  border-radius:999px;
-  overflow:hidden;
-}
-.progress-fill{
-  height:100%;
-  background:var(--accent);
-  border-radius:999px;
-  width:0%;
-  transition:width .3s ease;
-}
+.icon-btn:hover{background:rgba(239,233,224,.06);}
+
+/* ---- Barra superior de práctica ---- */
+.practice-top{display:flex;align-items:center;gap:12px;}
+.progress-track{flex:1;height:4px;background:var(--surface-2);border-radius:999px;overflow:hidden;}
+.progress-fill{height:100%;background:var(--accent);border-radius:999px;width:0%;transition:width .3s ease;}
 .progress-count{font-size:12px;color:var(--muted);flex-shrink:0;}
 
-/* ---- Zona de pregunta ---- */
 .question-area{
-  flex:1;
-  display:flex;
-  flex-direction:column;
-  align-items:center;
-  justify-content:center;
-  gap:26px;
-  padding:20px 0;
+  flex:1;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;
+  gap:26px;padding:20px 0;
 }
-.root-note{
-  width:92px;height:92px;
-  border-radius:var(--radius-lg);
-  background:var(--surface);
-  border:1px solid var(--accent);
-  color:var(--accent);
+
+/* ---- Juego de escalas ---- */
+.scale-head{text-align:center;}
+.scale-name{font-family:var(--serif);font-size:36px;font-weight:500;color:var(--accent);line-height:1.1;}
+.scale-hint{font-size:13px;color:var(--muted);margin-top:8px;}
+
+.slots,.board{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;width:100%;}
+.slot{
+  height:46px;border-radius:10px;
+  border:1px dashed var(--divider);
   display:flex;align-items:center;justify-content:center;
-  font-family:var(--serif);
-  font-size:27px;
-  font-weight:500;
+  font-family:var(--serif);font-size:clamp(12px,3.4vw,15px);font-weight:500;
+  color:var(--faint);
+}
+.slot.current{border-style:solid;border-color:var(--muted);}
+.slot.filled{border:1px solid var(--accent);background:var(--accent-soft);color:var(--accent);}
+
+.board{gap:6px 6px;}
+.note-btn{
+  height:56px;padding:0;
+  border-radius:10px;border:1px solid transparent;
+  background:var(--surface);color:var(--text);
+  font-family:var(--serif);font-size:clamp(13px,3.6vw,17px);font-weight:500;
+  cursor:pointer;transition:background .15s,border-color .15s;
+}
+.note-btn.alterada{background:var(--surface-2);}
+.note-btn:hover:not(:disabled){border-color:var(--divider);}
+.note-btn:disabled{cursor:default;opacity:.45;}
+.note-btn.error{border-color:var(--error);color:var(--error);animation:sacudir .4s;}
+.note-btn.pista{border-color:var(--accent);animation:pulso 1.2s ease-in-out infinite;}
+@keyframes sacudir{0%,100%{transform:translateX(0)}25%{transform:translateX(-4px)}75%{transform:translateX(4px)}}
+@keyframes pulso{0%,100%{box-shadow:0 0 0 0 rgba(224,164,88,0)}50%{box-shadow:0 0 0 4px rgba(224,164,88,.28)}}
+
+/* ---- Juego de intervalos ---- */
+.root-note{
+  width:92px;height:92px;border-radius:var(--radius-lg);
+  background:var(--surface);border:1px solid var(--accent);color:var(--accent);
+  display:flex;align-items:center;justify-content:center;
+  font-family:var(--serif);font-size:27px;font-weight:500;
 }
 .root-label{font-size:11px;color:var(--muted);margin-top:8px;text-align:center;}
-.question-text{
-  font-size:18px;
-  text-align:center;
-  line-height:1.5;
-  max-width:290px;
-}
+.question-text{font-size:18px;text-align:center;line-height:1.5;max-width:290px;}
 .question-text em{font-style:normal;color:var(--accent);font-weight:500;}
-
-/* ---- Opciones de respuesta ---- */
 .options{display:grid;grid-template-columns:1fr 1fr;gap:10px;width:100%;}
 .option{
-  height:76px;
-  border-radius:var(--radius);
-  border:1px solid transparent;
-  background:var(--surface);
-  color:var(--text);
-  font-family:var(--serif);
-  font-size:22px;
-  font-weight:500;
-  cursor:pointer;
-  transition:all .15s;
+  height:76px;border-radius:var(--radius);border:1px solid transparent;
+  background:var(--surface);color:var(--text);
+  font-family:var(--serif);font-size:22px;font-weight:500;
+  cursor:pointer;transition:all .15s;
 }
 .option:hover:not(:disabled){background:var(--surface-2);}
 .option:disabled{cursor:default;}
-.option.correct{
-  background:var(--accent-soft);
-  border-color:var(--accent);
-  color:var(--accent);
-}
-.option.wrong{
-  background:var(--surface-2);
-  color:var(--faint);
-}
+.option.correct{background:var(--accent-soft);border-color:var(--accent);color:var(--accent);}
+.option.wrong{background:var(--surface-2);color:var(--faint);}
 .option.dim{opacity:.4;}
 
 /* ---- Retroalimentación ---- */
-.feedback-zone{min-height:82px;display:flex;flex-direction:column;gap:12px;justify-content:flex-end;}
+.feedback-zone{min-height:104px;display:flex;flex-direction:column;gap:10px;justify-content:flex-end;}
 .feedback-text{text-align:center;font-size:14px;font-weight:500;}
 .feedback-text.ok{color:var(--accent);}
 .feedback-text.no{color:var(--muted);}
+.feedback-detail{text-align:center;font-size:13px;color:var(--muted);}
 
-/* ---- Pantalla de resultado ---- */
-.result{
-  flex:1;
-  display:flex;flex-direction:column;
-  align-items:center;justify-content:center;
-  text-align:center;gap:14px;
-}
+/* ---- Resultado ---- */
+.result{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:14px;}
 .result-label{font-size:13px;color:var(--muted);}
-.result-score{
-  font-family:var(--serif);
-  font-size:60px;
-  font-weight:500;
-  line-height:1;
-}
+.result-score{font-family:var(--serif);font-size:60px;font-weight:500;line-height:1;}
 .result-message{font-size:15px;color:var(--muted);max-width:270px;line-height:1.5;}
 .result-actions{display:flex;gap:10px;width:100%;margin-top:14px;}
 .result-actions .btn{flex:1;}
@@ -267,6 +238,8 @@ body{
 @media (max-width:360px){
   .root-note{width:80px;height:80px;font-size:24px;}
   .option{height:66px;font-size:20px;}
+  .note-btn{height:50px;}
+  .slot{height:40px;}
 }
 </style>
 </head>
@@ -274,20 +247,61 @@ body{
 
 <div class="app">
 
-  <!-- ============ PANTALLA: INICIO ============ -->
+  <!-- ============ MENÚ PRINCIPAL ============ -->
   <section id="screen-home" class="screen active">
-    <h1 class="title">Intervalos</h1>
-    <p class="subtitle">Elige un intervalo y recorre todo el ciclo de Do a Do.</p>
+    <h1 class="title">Práctica musical</h1>
+    <p class="subtitle">Elige qué quieres practicar hoy.</p>
 
-    <div class="stats" id="stats" style="display:none;">
-      <div class="stat">
-        <div class="stat-value" id="stat-streak">0</div>
-        <div class="stat-label">Racha actual</div>
-      </div>
-      <div class="stat">
-        <div class="stat-value" id="stat-accuracy">—</div>
-        <div class="stat-label">Precisión</div>
-      </div>
+    <div class="game-list">
+      <button class="game-card" id="card-escalas">
+        <div class="game-tag">Juego 1</div>
+        <div class="game-name">Escalas</div>
+        <div class="game-desc">Toca en orden las notas de escalas mayores y menores.</div>
+      </button>
+      <button class="game-card" id="card-intervalos">
+        <div class="game-tag">Juego 2</div>
+        <div class="game-name">Intervalos</div>
+        <div class="game-desc">Encuentra la nota que está a cierta distancia de otra.</div>
+      </button>
+    </div>
+  </section>
+
+  <!-- ============ CONFIGURACIÓN: ESCALAS ============ -->
+  <section id="screen-config-escalas" class="screen">
+    <div class="header-row">
+      <button class="icon-btn" data-ir="home" aria-label="Volver">&#8249;</button>
+      <h1 class="title title-sm">Escalas</h1>
+    </div>
+
+    <div class="stats" id="stats-escalas" style="display:none;">
+      <div class="stat"><div class="stat-value" id="stat-escalas-racha">0</div><div class="stat-label">Racha actual</div></div>
+      <div class="stat"><div class="stat-value" id="stat-escalas-precision">—</div><div class="stat-label">Escalas perfectas</div></div>
+    </div>
+
+    <div class="section-label">Elige un nivel</div>
+    <div class="level-list" id="level-list"></div>
+
+    <div class="section-label">Escalas a practicar</div>
+    <p class="helper" id="scale-helper"></p>
+    <div class="mini-label">Mayores</div>
+    <div class="chip-grid" id="chips-mayores"></div>
+    <div class="mini-label">Menores</div>
+    <div class="chip-grid" id="chips-menores"></div>
+
+    <div class="spacer"></div>
+    <button class="btn btn-primary" id="btn-start-escalas">Empezar práctica</button>
+  </section>
+
+  <!-- ============ CONFIGURACIÓN: INTERVALOS ============ -->
+  <section id="screen-config-intervalos" class="screen">
+    <div class="header-row">
+      <button class="icon-btn" data-ir="home" aria-label="Volver">&#8249;</button>
+      <h1 class="title title-sm">Intervalos</h1>
+    </div>
+
+    <div class="stats" id="stats-intervalos" style="display:none;">
+      <div class="stat"><div class="stat-value" id="stat-intervalos-racha">0</div><div class="stat-label">Racha actual</div></div>
+      <div class="stat"><div class="stat-value" id="stat-intervalos-precision">—</div><div class="stat-label">Precisión</div></div>
     </div>
 
     <div class="section-label">Elige un intervalo</div>
@@ -297,38 +311,58 @@ body{
     <div class="mode-grid" id="mode-grid"></div>
 
     <div class="spacer"></div>
-    <button class="btn btn-primary" id="btn-start">Empezar práctica</button>
+    <button class="btn btn-primary" id="btn-start-intervalos">Empezar práctica</button>
   </section>
 
-  <!-- ============ PANTALLA: PRÁCTICA ============ -->
-  <section id="screen-practice" class="screen">
+  <!-- ============ PRÁCTICA: ESCALAS ============ -->
+  <section id="screen-escalas" class="screen">
     <div class="practice-top">
-      <button class="close-btn" id="btn-exit" aria-label="Salir">&#10005;</button>
-      <div class="progress-track"><div class="progress-fill" id="progress-fill"></div></div>
-      <span class="progress-count" id="progress-count">1/7</span>
+      <button class="icon-btn" data-ir="config-escalas" aria-label="Salir">&#10005;</button>
+      <div class="progress-track"><div class="progress-fill" id="progress-escalas"></div></div>
+      <span class="progress-count" id="count-escalas">1/7</span>
+    </div>
+
+    <div class="question-area">
+      <div class="scale-head">
+        <div class="scale-name" id="scale-name"></div>
+        <div class="scale-hint" id="scale-hint"></div>
+      </div>
+      <div class="slots" id="slots"></div>
+      <div class="board" id="board"></div>
+    </div>
+
+    <div class="feedback-zone" id="feedback-escalas"></div>
+  </section>
+
+  <!-- ============ PRÁCTICA: INTERVALOS ============ -->
+  <section id="screen-intervalos" class="screen">
+    <div class="practice-top">
+      <button class="icon-btn" data-ir="config-intervalos" aria-label="Salir">&#10005;</button>
+      <div class="progress-track"><div class="progress-fill" id="progress-intervalos"></div></div>
+      <span class="progress-count" id="count-intervalos">1/7</span>
     </div>
 
     <div class="question-area">
       <div>
-        <div class="root-note" id="root-note">DO</div>
+        <div class="root-note" id="root-note"></div>
         <div class="root-label">nota de referencia</div>
       </div>
       <div class="question-text" id="question-text"></div>
       <div class="options" id="options"></div>
     </div>
 
-    <div class="feedback-zone" id="feedback-zone"></div>
+    <div class="feedback-zone" id="feedback-intervalos"></div>
   </section>
 
-  <!-- ============ PANTALLA: RESULTADO ============ -->
+  <!-- ============ RESULTADO (compartido) ============ -->
   <section id="screen-result" class="screen">
     <div class="result">
-      <div class="result-label">Ciclo completado</div>
-      <div class="result-score" id="result-score">0/7</div>
+      <div class="result-label" id="result-label"></div>
+      <div class="result-score" id="result-score"></div>
       <div class="result-message" id="result-message"></div>
       <div class="result-actions">
         <button class="btn btn-primary" id="btn-retry">Repetir</button>
-        <button class="btn btn-ghost" id="btn-home">Elegir intervalo</button>
+        <button class="btn btn-ghost" data-ir="home">Menú</button>
       </div>
     </div>
   </section>
@@ -337,62 +371,10 @@ body{
 
 <script>
 /* =========================================================
-   DATOS BASE
+   UTILIDADES GENERALES
    ========================================================= */
 
-// La escala de Do mayor. El índice de cada nota importa:
-// sumando "pasos" al índice obtenemos el intervalo.
-const ESCALA = ['DO','RE','MI','FA','SOL','LA','SI'];
-
-// Cada intervalo avanza un número fijo de pasos dentro de la escala.
-// Una segunda avanza 1 nota, una tercera 2, etc.
-const INTERVALOS = [
-  { clave:'2da', ordinal:'2ª', nombre:'Segunda', minuscula:'segunda', pasos:1 },
-  { clave:'3ra', ordinal:'3ª', nombre:'Tercera', minuscula:'tercera', pasos:2 },
-  { clave:'4ta', ordinal:'4ª', nombre:'Cuarta',  minuscula:'cuarta',  pasos:3 },
-  { clave:'5ta', ordinal:'5ª', nombre:'Quinta',  minuscula:'quinta',  pasos:4 },
-  { clave:'6ta', ordinal:'6ª', nombre:'Sexta',   minuscula:'sexta',   pasos:5 },
-  { clave:'7ma', ordinal:'7ª', nombre:'Séptima', minuscula:'séptima', pasos:6 },
-];
-
-// Dos formas de recorrer la octava. En ambas aparecen las 7 notas
-// exactamente una vez: lo único que cambia es el orden.
-const MODOS = [
-  { clave:'orden',     nombre:'En orden',  desc:'Encadenado desde Do' },
-  { clave:'aleatorio', nombre:'Aleatorio', desc:'Octava completa, revuelta' },
-];
-
-const CLAVE_GUARDADO = 'intervalos-stats-v1';
-const TOTAL_PREGUNTAS = 7;
-
-/* =========================================================
-   ESTADO DE LA APLICACIÓN
-   ========================================================= */
-
-let intervaloElegido = '2da';
-let modoElegido = 'orden';
-let sesion = null;   // se llena al empezar la práctica
-let stats = { racha:0, mejorRacha:0, aciertos:0, respondidas:0, sesiones:0 };
-
-/* =========================================================
-   GUARDADO EN EL NAVEGADOR
-   ========================================================= */
-
-function cargarStats(){
-  try{
-    const guardado = localStorage.getItem(CLAVE_GUARDADO);
-    if(guardado) stats = Object.assign(stats, JSON.parse(guardado));
-  }catch(e){ /* si falla, seguimos con stats en cero */ }
-}
-
-function guardarStats(){
-  try{ localStorage.setItem(CLAVE_GUARDADO, JSON.stringify(stats)); }
-  catch(e){ /* modo privado puede bloquear el guardado */ }
-}
-
-/* =========================================================
-   UTILIDADES
-   ========================================================= */
+function $(id){ return document.getElementById(id); }
 
 // Devuelve una copia desordenada del arreglo (algoritmo Fisher-Yates)
 function revolver(arreglo){
@@ -404,7 +386,10 @@ function revolver(arreglo){
   return copia;
 }
 
-function $(id){ return document.getElementById(id); }
+// Internamente escribimos "Fa#" y "Sib"; en pantalla mostramos ♯ y ♭
+function formatoNota(nota){
+  return nota.replace('#', '♯').replace(/b$/, '♭');
+}
 
 function mostrarPantalla(nombre){
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
@@ -412,178 +397,499 @@ function mostrarPantalla(nombre){
   window.scrollTo(0, 0);
 }
 
+function cargar(clave, base){
+  try{
+    const guardado = localStorage.getItem(clave);
+    if(guardado) return Object.assign({}, base, JSON.parse(guardado));
+  }catch(e){}
+  return Object.assign({}, base);
+}
+
+function guardar(clave, datos){
+  try{ localStorage.setItem(clave, JSON.stringify(datos)); }catch(e){}
+}
+
+const STATS_BASE = { racha:0, mejorRacha:0, aciertos:0, respondidas:0, sesiones:0 };
+
+// Suma un acierto o un error a unas estadísticas
+function registrar(stats, acerto){
+  stats.respondidas += 1;
+  if(acerto){
+    stats.aciertos += 1;
+    stats.racha += 1;
+    stats.mejorRacha = Math.max(stats.mejorRacha, stats.racha);
+  } else {
+    stats.racha = 0;
+  }
+}
+
+function pintarStats(nombre, stats){
+  if(stats.sesiones === 0){ $('stats-' + nombre).style.display = 'none'; return; }
+  $('stats-' + nombre).style.display = 'flex';
+  $('stat-' + nombre + '-racha').textContent = stats.racha;
+  $('stat-' + nombre + '-precision').textContent = stats.respondidas > 0
+    ? Math.round(stats.aciertos / stats.respondidas * 100) + '%'
+    : '—';
+}
+
+function mensajeFinal(proporcion){
+  if(proporcion >= 0.9) return 'Excelente, lo dominas.';
+  if(proporcion >= 0.7) return 'Muy bien, sigue así.';
+  if(proporcion >= 0.5) return 'Vas bien, sigue practicando.';
+  return 'Repite para afianzarlo.';
+}
+
+let juegoActual = null;   // 'escalas' o 'intervalos'
+
 /* =========================================================
-   PANTALLA DE INICIO
+   JUEGO 1: ESCALAS
    ========================================================= */
 
-function pintarIntervalos(){
-  const contenedor = $('interval-grid');
-  contenedor.innerHTML = '';
+const LETRAS = ['Do','Re','Mi','Fa','Sol','La','Si'];
+const TOTAL_ESCALAS = 7;
 
+// Cada nivel sigue el orden en que aparecen las alteraciones en la armadura.
+// La escala en la posición 0 no lleva alteraciones, la de la posición 1 lleva 1, etc.
+// Do mayor y La menor están en ambos niveles: son el punto de partida.
+// Cada mayor comparte armadura con su relativa menor (misma posición en la lista).
+const NIVELES = [
+  {
+    clave:'sostenidos',
+    nombre:'Sostenidos',
+    desc:'De Do a Do♯ mayor (Do, Sol, Re, La, Mi, Si, Fa♯, Do♯), con sus relativas menores',
+    alteracion:'#',
+    palabra:'sostenido',
+    ordenArmadura:['Fa','Do','Sol','Re','La','Mi','Si'],
+    mayores:['Do','Sol','Re','La','Mi','Si','Fa#','Do#'],
+    menores:['La','Mi','Si','Fa#','Do#','Sol#','Re#','La#']
+  },
+  {
+    clave:'bemoles',
+    nombre:'Bemoles',
+    desc:'De Do a Do♭ mayor (Do, Fa, Si♭, Mi♭, La♭, Re♭, Sol♭, Do♭), con sus relativas menores',
+    alteracion:'b',
+    palabra:'bemol',
+    ordenArmadura:['Si','Mi','La','Re','Sol','Do','Fa'],
+    mayores:['Do','Fa','Sib','Mib','Lab','Reb','Solb','Dob'],
+    menores:['La','Re','Sol','Do','Fa','Sib','Mib','Lab']
+  }
+];
+
+let nivelElegido = 'sostenidos';
+let escalasElegidas = new Set();   // vacío = todas las del nivel
+let sesionEscalas = null;
+let statsEscalas = cargar('escalas-stats-v1', STATS_BASE);
+
+function nivelActual(){
+  return NIVELES.find(n => n.clave === nivelElegido) || NIVELES[0];
+}
+
+// Construye las 7 notas de una escala a partir de su armadura.
+// Recorre las letras desde la raíz y altera las que estén en la armadura.
+function construirEscala(raiz, cantidad, nivel){
+  const letraRaiz = raiz.replace(/[#b]$/, '');       // "Fa#" -> "Fa", "Sib" -> "Si"
+  const alteradas = nivel.ordenArmadura.slice(0, cantidad);
+  const inicio = LETRAS.indexOf(letraRaiz);
+  const notas = [];
+
+  for(let i = 0; i < 7; i++){
+    const letra = LETRAS[(inicio + i) % 7];
+    notas.push(alteradas.includes(letra) ? letra + nivel.alteracion : letra);
+  }
+  return notas;
+}
+
+// Las 16 escalas del nivel: 8 mayores + 8 menores.
+// La posición en la lista es justo el número de alteraciones.
+function escalasDelNivel(nivel){
+  const lista = [];
+  nivel.mayores.forEach((raiz, i) => lista.push({ raiz, tipo:'mayor', cantidad:i }));
+  nivel.menores.forEach((raiz, i) => lista.push({ raiz, tipo:'menor', cantidad:i }));
+  lista.forEach(e => e.notas = construirEscala(e.raiz, e.cantidad, nivel));
+  return lista;
+}
+
+function pintarNiveles(){
+  const cont = $('level-list');
+  cont.innerHTML = '';
+  NIVELES.forEach(nivel => {
+    const boton = document.createElement('button');
+    boton.className = 'choice' + (nivel.clave === nivelElegido ? ' selected' : '');
+    boton.innerHTML =
+      '<div class="choice-name">' + nivel.nombre + '</div>' +
+      '<div class="choice-desc">' + nivel.desc + '</div>';
+    boton.addEventListener('click', () => {
+      if(nivelElegido !== nivel.clave) escalasElegidas.clear();   // otro nivel, otras escalas
+      nivelElegido = nivel.clave;
+      pintarNiveles();
+      pintarSelectorEscalas();
+    });
+    cont.appendChild(boton);
+  });
+}
+
+// Identificador único de cada escala, por ejemplo "Fa#-menor"
+function claveEscala(escala){ return escala.raiz + '-' + escala.tipo; }
+
+function pintarSelectorEscalas(){
+  const nivel = nivelActual();
+
+  [['mayor', nivel.mayores, 'chips-mayores'], ['menor', nivel.menores, 'chips-menores']].forEach(([tipo, raices, id]) => {
+    const cont = $(id);
+    cont.innerHTML = '';
+    raices.forEach(raiz => {
+      const clave = raiz + '-' + tipo;
+      const boton = document.createElement('button');
+      boton.className = 'chip' + (escalasElegidas.has(clave) ? ' selected' : '');
+      boton.textContent = formatoNota(raiz);
+      boton.addEventListener('click', () => {
+        // Tocar una vez la elige, tocar otra vez la quita
+        if(escalasElegidas.has(clave)) escalasElegidas.delete(clave);
+        else escalasElegidas.add(clave);
+        pintarSelectorEscalas();
+      });
+      cont.appendChild(boton);
+    });
+  });
+
+  const n = escalasElegidas.size;
+  $('scale-helper').textContent = n === 0
+    ? 'Toca una o varias. Si no eliges ninguna, se mezclan las ' + (nivel.mayores.length + nivel.menores.length) + '.'
+    : (n === 1 ? '1 escala elegida: la practicarás 7 veces seguidas.' : n + ' escalas elegidas.');
+}
+
+// Arma las 7 rondas de la sesión a partir de las escalas disponibles.
+// Si hay menos de 7, se repiten revueltas, evitando la misma escala dos veces seguidas.
+function armarSesion(disponibles){
+  let rondas = [];
+  while(rondas.length < TOTAL_ESCALAS){
+    const tanda = revolver(disponibles);
+    const ultima = rondas[rondas.length - 1];
+    if(ultima && tanda.length > 1 && tanda[0] === ultima){
+      [tanda[0], tanda[1]] = [tanda[1], tanda[0]];
+    }
+    rondas = rondas.concat(tanda);
+  }
+  return rondas.slice(0, TOTAL_ESCALAS);
+}
+
+function abrirEscalas(){
+  juegoActual = 'escalas';
+  pintarNiveles();
+  pintarSelectorEscalas();
+  pintarStats('escalas', statsEscalas);
+  mostrarPantalla('config-escalas');
+}
+
+function empezarEscalas(){
+  juegoActual = 'escalas';
+  const todas = escalasDelNivel(nivelActual());
+  const disponibles = escalasElegidas.size > 0
+    ? todas.filter(e => escalasElegidas.has(claveEscala(e)))
+    : todas;
+  const escalas = armarSesion(disponibles);
+  sesionEscalas = { escalas, indice:0, puntaje:0 };
+  prepararEscala();
+  mostrarPantalla('escalas');
+}
+
+// Reinicia los contadores para la escala actual y la dibuja
+function prepararEscala(){
+  const s = sesionEscalas;
+  s.posicion = 0;            // cuántas notas lleva bien
+  s.errores = 0;             // errores en toda la escala
+  s.erroresAqui = 0;         // errores en la nota que toca ahora
+  s.terminada = false;
+  pintarEscala();
+}
+
+function pintarEscala(){
+  const s = sesionEscalas;
+  const escala = s.escalas[s.indice];
+
+  const avance = (s.indice + (s.terminada ? 1 : 0)) / TOTAL_ESCALAS;
+  $('progress-escalas').style.width = Math.round(avance * 100) + '%';
+  $('count-escalas').textContent = (s.indice + 1) + '/' + TOTAL_ESCALAS;
+
+  $('scale-name').textContent = formatoNota(escala.raiz) + ' ' + escala.tipo;
+  $('scale-hint').textContent = escala.tipo === 'menor'
+    ? 'Menor natural · toca las 7 notas en orden'
+    : 'Toca las 7 notas en orden';
+
+  pintarRanuras();
+  pintarTablero();
+  $('feedback-escalas').innerHTML = '';
+}
+
+// Las 7 casillas de arriba, donde van apareciendo las notas acertadas
+function pintarRanuras(){
+  const s = sesionEscalas;
+  const escala = s.escalas[s.indice];
+  const cont = $('slots');
+  cont.innerHTML = '';
+
+  for(let i = 0; i < 7; i++){
+    const casilla = document.createElement('div');
+    if(i < s.posicion){
+      casilla.className = 'slot filled';
+      casilla.textContent = formatoNota(escala.notas[i]);
+    } else {
+      casilla.className = 'slot' + (i === s.posicion && !s.terminada ? ' current' : '');
+      casilla.textContent = '·';
+    }
+    cont.appendChild(casilla);
+  }
+}
+
+// El tablero: fila de notas naturales y fila de notas alteradas
+function pintarTablero(){
+  const nivel = nivelActual();
+  const cont = $('board');
+  cont.innerHTML = '';
+
+  const naturales = LETRAS;
+  const alteradas = LETRAS.map(l => l + nivel.alteracion);
+
+  [naturales, alteradas].forEach((fila, f) => {
+    fila.forEach(nota => {
+      const boton = document.createElement('button');
+      boton.className = 'note-btn' + (f === 1 ? ' alterada' : '');
+      boton.textContent = formatoNota(nota);
+      boton.dataset.nota = nota;
+      boton.addEventListener('click', () => tocarNota(nota, boton));
+      cont.appendChild(boton);
+    });
+  });
+}
+
+function tocarNota(nota, boton){
+  const s = sesionEscalas;
+  if(s.terminada) return;
+
+  const esperada = s.escalas[s.indice].notas[s.posicion];
+
+  if(nota === esperada){
+    s.posicion += 1;
+    s.erroresAqui = 0;
+    document.querySelectorAll('.note-btn.pista').forEach(b => b.classList.remove('pista'));
+    if(s.posicion >= 7) terminarEscala();
+    pintarRanuras();
+    return;
+  }
+
+  // Nota equivocada: sacudimos el botón y contamos el error
+  s.errores += 1;
+  s.erroresAqui += 1;
+  boton.classList.remove('error');
+  void boton.offsetWidth;            // truco para reiniciar la animación
+  boton.classList.add('error');
+  setTimeout(() => boton.classList.remove('error'), 450);
+
+  // Después de 2 errores en la misma nota, señalamos la correcta
+  if(s.erroresAqui >= 2){
+    const correcta = document.querySelector('.note-btn[data-nota="' + esperada + '"]');
+    if(correcta) correcta.classList.add('pista');
+  }
+}
+
+function terminarEscala(){
+  const s = sesionEscalas;
+  const escala = s.escalas[s.indice];
+  const nivel = nivelActual();
+  const perfecta = s.errores === 0;
+
+  s.terminada = true;
+  if(perfecta) s.puntaje += 1;
+  registrar(statsEscalas, perfecta);
+  guardar('escalas-stats-v1', statsEscalas);
+
+  document.querySelectorAll('#board .note-btn').forEach(b => b.disabled = true);
+  $('progress-escalas').style.width = Math.round((s.indice + 1) / TOTAL_ESCALAS * 100) + '%';
+
+  // Retroalimentación: resultado + qué alteraciones lleva la escala
+  const alteraciones = nivel.ordenArmadura.slice(0, escala.cantidad).map(l => formatoNota(l + nivel.alteracion));
+  const palabra = escala.cantidad === 1 ? nivel.palabra : nivel.palabra + (nivel.palabra.endsWith('l') ? 'es' : 's');
+  const esUltima = s.indice + 1 >= TOTAL_ESCALAS;
+
+  const zona = $('feedback-escalas');
+  zona.innerHTML = '';
+
+  const texto = document.createElement('div');
+  texto.className = 'feedback-text ' + (perfecta ? 'ok' : 'no');
+  texto.textContent = perfecta
+    ? '¡Perfecta!'
+    : 'Completada con ' + s.errores + (s.errores === 1 ? ' error' : ' errores');
+
+  const detalle = document.createElement('div');
+  detalle.className = 'feedback-detail';
+  detalle.textContent = escala.cantidad === 0
+    ? 'No lleva alteraciones'
+    : 'Lleva ' + escala.cantidad + ' ' + palabra + ': ' + alteraciones.join(', ');
+
+  const boton = document.createElement('button');
+  boton.className = 'btn btn-primary';
+  boton.textContent = esUltima ? 'Ver resultado' : 'Siguiente';
+  boton.addEventListener('click', siguienteEscala);
+
+  zona.append(texto, detalle, boton);
+}
+
+function siguienteEscala(){
+  const s = sesionEscalas;
+  if(s.indice + 1 >= TOTAL_ESCALAS){
+    statsEscalas.sesiones += 1;
+    guardar('escalas-stats-v1', statsEscalas);
+    mostrarResultado(s.puntaje, TOTAL_ESCALAS, 'Escalas sin errores');
+  } else {
+    s.indice += 1;
+    prepararEscala();
+  }
+}
+
+/* =========================================================
+   JUEGO 2: INTERVALOS
+   ========================================================= */
+
+const ESCALA = ['Do','Re','Mi','Fa','Sol','La','Si'];
+const TOTAL_PREGUNTAS = 7;
+
+// Cada intervalo avanza un número fijo de pasos dentro de la escala.
+const INTERVALOS = [
+  { clave:'2da', ordinal:'2ª', nombre:'Segunda', minuscula:'segunda', pasos:1 },
+  { clave:'3ra', ordinal:'3ª', nombre:'Tercera', minuscula:'tercera', pasos:2 },
+  { clave:'4ta', ordinal:'4ª', nombre:'Cuarta',  minuscula:'cuarta',  pasos:3 },
+  { clave:'5ta', ordinal:'5ª', nombre:'Quinta',  minuscula:'quinta',  pasos:4 },
+  { clave:'6ta', ordinal:'6ª', nombre:'Sexta',   minuscula:'sexta',   pasos:5 },
+  { clave:'7ma', ordinal:'7ª', nombre:'Séptima', minuscula:'séptima', pasos:6 },
+];
+
+// En ambos modos aparecen las 7 notas una vez: solo cambia el orden.
+const MODOS = [
+  { clave:'orden',     nombre:'En orden',  desc:'Encadenado desde Do' },
+  { clave:'aleatorio', nombre:'Aleatorio', desc:'Octava completa, revuelta' },
+];
+
+let intervaloElegido = '2da';
+let modoElegido = 'orden';
+let sesion = null;
+let statsIntervalos = cargar('intervalos-stats-v1', STATS_BASE);
+
+function pintarIntervalos(){
+  const cont = $('interval-grid');
+  cont.innerHTML = '';
   INTERVALOS.forEach(def => {
     const boton = document.createElement('button');
-    boton.className = 'interval' + (def.clave === intervaloElegido ? ' selected' : '');
+    boton.className = 'choice' + (def.clave === intervaloElegido ? ' selected' : '');
     boton.innerHTML =
-      '<div class="interval-ordinal">' + def.ordinal + '</div>' +
-      '<div class="interval-name">' + def.nombre + '</div>' +
-      '<div class="interval-example">Ej: Do → ' + ESCALA[def.pasos] + '</div>';
-
-    boton.addEventListener('click', () => {
-      intervaloElegido = def.clave;
-      pintarIntervalos();
-    });
-
-    contenedor.appendChild(boton);
+      '<div class="choice-tag">' + def.ordinal + '</div>' +
+      '<div class="choice-name">' + def.nombre + '</div>' +
+      '<div class="choice-desc">Ej: Do → ' + ESCALA[def.pasos] + '</div>';
+    boton.addEventListener('click', () => { intervaloElegido = def.clave; pintarIntervalos(); });
+    cont.appendChild(boton);
   });
 }
 
 function pintarModos(){
-  const contenedor = $('mode-grid');
-  contenedor.innerHTML = '';
-
+  const cont = $('mode-grid');
+  cont.innerHTML = '';
   MODOS.forEach(def => {
     const boton = document.createElement('button');
-    boton.className = 'mode' + (def.clave === modoElegido ? ' selected' : '');
+    boton.className = 'choice' + (def.clave === modoElegido ? ' selected' : '');
     boton.innerHTML =
-      '<div class="mode-name">' + def.nombre + '</div>' +
-      '<div class="mode-desc">' + def.desc + '</div>';
-
-    boton.addEventListener('click', () => {
-      modoElegido = def.clave;
-      pintarModos();
-    });
-
-    contenedor.appendChild(boton);
+      '<div class="choice-name">' + def.nombre + '</div>' +
+      '<div class="choice-desc">' + def.desc + '</div>';
+    boton.addEventListener('click', () => { modoElegido = def.clave; pintarModos(); });
+    cont.appendChild(boton);
   });
 }
 
-function pintarStats(){
-  if(stats.sesiones > 0){
-    $('stats').style.display = 'flex';
-    $('stat-streak').textContent = stats.racha;
-    $('stat-accuracy').textContent = stats.respondidas > 0
-      ? Math.round(stats.aciertos / stats.respondidas * 100) + '%'
-      : '—';
-  } else {
-    $('stats').style.display = 'none';
-  }
+function abrirIntervalos(){
+  juegoActual = 'intervalos';
+  pintarIntervalos();
+  pintarModos();
+  pintarStats('intervalos', statsIntervalos);
+  mostrarPantalla('config-intervalos');
 }
 
-/* =========================================================
-   CONSTRUCCIÓN DE LA SESIÓN
-   ========================================================= */
-
-// Devuelve los índices de las 7 notas que servirán de raíz, en el orden
-// que corresponda al modo elegido.
+// Los índices de las 7 notas raíz, en el orden que toque según el modo
 function construirRaices(def){
-  if(modoElegido === 'aleatorio'){
-    // Las 7 notas revueltas: sigue siendo una octava completa.
-    return revolver([0, 1, 2, 3, 4, 5, 6]);
-  }
+  if(modoElegido === 'aleatorio') return revolver([0, 1, 2, 3, 4, 5, 6]);
 
-  // Modo en orden: cada respuesta se vuelve la raíz de la siguiente pregunta.
+  // En orden: cada respuesta se vuelve la raíz de la siguiente pregunta.
   // Como 7 es primo, cualquier intervalo recorre las 7 notas sin repetir.
   const raices = [];
-  let indice = 0;   // empezamos siempre en DO
+  let indice = 0;
   for(let i = 0; i < 7; i++){
     raices.push(indice);
-    indice = (indice + def.pasos) % 7;   // el % hace que la escala dé la vuelta
+    indice = (indice + def.pasos) % 7;
   }
   return raices;
 }
 
 function construirPreguntas(){
   const def = INTERVALOS.find(d => d.clave === intervaloElegido) || INTERVALOS[0];
-
   return construirRaices(def).map(indice => {
     const raiz = ESCALA[indice];
     const correcta = ESCALA[(indice + def.pasos) % 7];
-
-    // Tres notas incorrectas al azar, más la correcta, todo revuelto
     const distractores = revolver(ESCALA.filter(n => n !== correcta)).slice(0, 3);
     const opciones = revolver([correcta, ...distractores]);
-
     return { raiz, intervalo: def.minuscula, correcta, opciones };
   });
 }
 
-function empezarPractica(){
-  sesion = {
-    preguntas: construirPreguntas(),
-    indice: 0,
-    puntaje: 0,
-    respondida: false,
-    elegida: null
-  };
-  mostrarPantalla('practice');
+function empezarIntervalos(){
+  juegoActual = 'intervalos';
+  sesion = { preguntas: construirPreguntas(), indice:0, puntaje:0, respondida:false, elegida:null };
+  mostrarPantalla('intervalos');
   pintarPregunta();
 }
-
-/* =========================================================
-   PANTALLA DE PRÁCTICA
-   ========================================================= */
 
 function pintarPregunta(){
   const p = sesion.preguntas[sesion.indice];
 
-  // Barra de progreso
   const avance = (sesion.indice + (sesion.respondida ? 1 : 0)) / TOTAL_PREGUNTAS;
-  $('progress-fill').style.width = Math.round(avance * 100) + '%';
-  $('progress-count').textContent = (sesion.indice + 1) + '/' + TOTAL_PREGUNTAS;
+  $('progress-intervalos').style.width = Math.round(avance * 100) + '%';
+  $('count-intervalos').textContent = (sesion.indice + 1) + '/' + TOTAL_PREGUNTAS;
 
-  // Nota de referencia y enunciado
   $('root-note').textContent = p.raiz;
   $('question-text').innerHTML = '¿Cuál es la <em>' + p.intervalo + '</em> de ' + p.raiz + '?';
 
-  // Opciones
   const cont = $('options');
   cont.innerHTML = '';
-
   p.opciones.forEach(nota => {
     const boton = document.createElement('button');
     boton.className = 'option';
     boton.textContent = nota;
     boton.disabled = sesion.respondida;
-
     if(sesion.respondida){
-      if(nota === p.correcta)            boton.classList.add('correct');
-      else if(nota === sesion.elegida)   boton.classList.add('wrong');
-      else                               boton.classList.add('dim');
+      if(nota === p.correcta)          boton.classList.add('correct');
+      else if(nota === sesion.elegida) boton.classList.add('wrong');
+      else                             boton.classList.add('dim');
     } else {
       boton.addEventListener('click', () => responder(nota));
     }
-
     cont.appendChild(boton);
   });
 
-  pintarRetroalimentacion();
+  pintarRetroIntervalos();
 }
 
 function responder(nota){
   if(sesion.respondida) return;
-
   const p = sesion.preguntas[sesion.indice];
   const acerto = nota === p.correcta;
 
-  // Actualizamos estadísticas
-  stats.respondidas += 1;
-  if(acerto){
-    stats.aciertos += 1;
-    stats.racha += 1;
-    stats.mejorRacha = Math.max(stats.mejorRacha, stats.racha);
-    sesion.puntaje += 1;
-  } else {
-    stats.racha = 0;
-  }
-  guardarStats();
+  registrar(statsIntervalos, acerto);
+  guardar('intervalos-stats-v1', statsIntervalos);
+  if(acerto) sesion.puntaje += 1;
 
   sesion.respondida = true;
   sesion.elegida = nota;
   pintarPregunta();
 }
 
-function pintarRetroalimentacion(){
-  const zona = $('feedback-zone');
+function pintarRetroIntervalos(){
+  const zona = $('feedback-intervalos');
   zona.innerHTML = '';
   if(!sesion.respondida) return;
 
@@ -600,15 +906,14 @@ function pintarRetroalimentacion(){
   boton.textContent = esUltima ? 'Ver resultado' : 'Siguiente';
   boton.addEventListener('click', siguientePregunta);
 
-  zona.appendChild(texto);
-  zona.appendChild(boton);
+  zona.append(texto, boton);
 }
 
 function siguientePregunta(){
   if(sesion.indice + 1 >= TOTAL_PREGUNTAS){
-    stats.sesiones += 1;
-    guardarStats();
-    mostrarResultado();
+    statsIntervalos.sesiones += 1;
+    guardar('intervalos-stats-v1', statsIntervalos);
+    mostrarResultado(sesion.puntaje, TOTAL_PREGUNTAS, 'Ciclo completado');
   } else {
     sesion.indice += 1;
     sesion.respondida = false;
@@ -618,45 +923,34 @@ function siguientePregunta(){
 }
 
 /* =========================================================
-   PANTALLA DE RESULTADO
+   RESULTADO Y NAVEGACIÓN
    ========================================================= */
 
-function mostrarResultado(){
-  const puntaje = sesion.puntaje;
-  const proporcion = puntaje / TOTAL_PREGUNTAS;
-
-  let mensaje;
-  if(proporcion >= 0.9)      mensaje = 'Excelente oído para los intervalos.';
-  else if(proporcion >= 0.7) mensaje = 'Muy bien, sigue así.';
-  else if(proporcion >= 0.5) mensaje = 'Vas bien, sigue practicando.';
-  else                       mensaje = 'Repite para afianzar los intervalos.';
-
-  $('result-score').textContent = puntaje + '/' + TOTAL_PREGUNTAS;
-  $('result-message').textContent = mensaje;
+function mostrarResultado(puntaje, total, etiqueta){
+  $('result-label').textContent = etiqueta;
+  $('result-score').textContent = puntaje + '/' + total;
+  $('result-message').textContent = mensajeFinal(puntaje / total);
   mostrarPantalla('result');
 }
 
-function volverAlInicio(){
-  sesion = null;
-  pintarStats();
-  pintarIntervalos();
-  pintarModos();
-  mostrarPantalla('home');
-}
+// Botones con data-ir="..." llevan a otra pantalla
+document.querySelectorAll('[data-ir]').forEach(boton => {
+  boton.addEventListener('click', () => {
+    const destino = boton.dataset.ir;
+    if(destino === 'config-escalas') abrirEscalas();
+    else if(destino === 'config-intervalos') abrirIntervalos();
+    else mostrarPantalla(destino);
+  });
+});
 
-/* =========================================================
-   ARRANQUE
-   ========================================================= */
-
-$('btn-start').addEventListener('click', empezarPractica);
-$('btn-exit').addEventListener('click', volverAlInicio);
-$('btn-home').addEventListener('click', volverAlInicio);
-$('btn-retry').addEventListener('click', empezarPractica);
-
-cargarStats();
-pintarStats();
-pintarIntervalos();
-pintarModos();
+$('card-escalas').addEventListener('click', abrirEscalas);
+$('card-intervalos').addEventListener('click', abrirIntervalos);
+$('btn-start-escalas').addEventListener('click', empezarEscalas);
+$('btn-start-intervalos').addEventListener('click', empezarIntervalos);
+$('btn-retry').addEventListener('click', () => {
+  if(juegoActual === 'escalas') empezarEscalas();
+  else empezarIntervalos();
+});
 </script>
 
 </body>
