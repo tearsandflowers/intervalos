@@ -219,6 +219,11 @@ body{
 .option.correct{background:var(--accent-soft);border-color:var(--accent);color:var(--accent);}
 .option.wrong{background:var(--surface-2);color:var(--faint);}
 .option.dim{opacity:.4;}
+.options.seis{grid-template-columns:repeat(3,1fr);}
+.option.sm{height:64px;font-size:18px;}
+.note-pair{display:flex;align-items:center;justify-content:center;gap:14px;}
+.note-arrow{font-size:22px;color:var(--faint);}
+.feedback-detail em{font-style:normal;color:var(--text);}
 
 /* ---- Retroalimentación ---- */
 .feedback-zone{min-height:104px;display:flex;flex-direction:column;gap:10px;justify-content:flex-end;}
@@ -261,7 +266,7 @@ body{
       <button class="game-card" id="card-intervalos">
         <div class="game-tag">Juego 2</div>
         <div class="game-name">Intervalos</div>
-        <div class="game-desc">Encuentra la nota que está a cierta distancia de otra.</div>
+        <div class="game-desc">Encuentra la nota a cierta distancia, o identifica el intervalo entre dos notas.</div>
       </button>
     </div>
   </section>
@@ -307,11 +312,21 @@ body{
       <div class="stat"><div class="stat-value" id="stat-intervalos-precision">—</div><div class="stat-label">Precisión</div></div>
     </div>
 
-    <div class="section-label">Elige un intervalo</div>
-    <div class="interval-grid" id="interval-grid"></div>
+    <div class="section-label">Tipo de ejercicio</div>
+    <div class="mode-grid" id="int-exercise-grid"></div>
 
-    <div class="section-label">Orden de las preguntas</div>
-    <div class="mode-grid" id="mode-grid"></div>
+    <div id="opciones-encontrar">
+      <div class="section-label">Elige un intervalo</div>
+      <div class="interval-grid" id="interval-grid"></div>
+
+      <div class="section-label">Orden de las preguntas</div>
+      <div class="mode-grid" id="mode-grid"></div>
+    </div>
+
+    <div id="opciones-identificar" style="display:none;">
+      <div class="section-label">Cómo funciona</div>
+      <p class="helper">Te doy dos notas y tú dices qué intervalo hay entre ellas, subiendo. En cada ronda salen los 6 intervalos, desde notas al azar.</p>
+    </div>
 
     <div class="spacer"></div>
     <button class="btn btn-primary" id="btn-start-intervalos">Empezar práctica</button>
@@ -346,10 +361,7 @@ body{
     </div>
 
     <div class="question-area">
-      <div>
-        <div class="root-note" id="root-note"></div>
-        <div class="root-label">nota de referencia</div>
-      </div>
+      <div id="note-display"></div>
       <div class="question-text" id="question-text"></div>
       <div class="options" id="options"></div>
     </div>
@@ -365,7 +377,7 @@ body{
       <div class="result-message" id="result-message"></div>
       <div class="result-actions">
         <button class="btn btn-primary" id="btn-retry">Repetir</button>
-        <button class="btn btn-ghost" data-ir="home">Menú</button>
+        <button class="btn btn-ghost" id="btn-menu">Menú</button>
       </div>
     </div>
   </section>
@@ -887,10 +899,44 @@ const MODOS = [
   { clave:'aleatorio', nombre:'Aleatorio', desc:'Octava completa, revuelta' },
 ];
 
+// Dos ejercicios:
+// "encontrar" te da una nota y un intervalo, y tú buscas la otra nota;
+// "identificar" te da dos notas, y tú dices qué intervalo hay entre ellas.
+const EJERCICIOS_INT = [
+  { clave:'encontrar',   nombre:'Encontrar la nota', desc:'Te doy el intervalo, tú la nota', guardado:'intervalos-stats-v1',  etiqueta:'Ciclo completado' },
+  { clave:'identificar', nombre:'Identificar',       desc:'Te doy dos notas, tú el intervalo', guardado:'identificar-stats-v1', etiqueta:'Intervalos identificados' },
+];
+
+let ejercicioIntElegido = 'encontrar';
 let intervaloElegido = '2da';
 let modoElegido = 'orden';
 let sesion = null;
-let statsIntervalos = cargar('intervalos-stats-v1', STATS_BASE);
+
+const statsPorEjercicioInt = {};
+EJERCICIOS_INT.forEach(e => statsPorEjercicioInt[e.clave] = cargar(e.guardado, STATS_BASE));
+
+function pintarEjerciciosInt(){
+  const cont = $('int-exercise-grid');
+  cont.innerHTML = '';
+  EJERCICIOS_INT.forEach(ej => {
+    const boton = document.createElement('button');
+    boton.className = 'choice' + (ej.clave === ejercicioIntElegido ? ' selected' : '');
+    boton.innerHTML =
+      '<div class="choice-name">' + ej.nombre + '</div>' +
+      '<div class="choice-desc">' + ej.desc + '</div>';
+    boton.addEventListener('click', () => {
+      ejercicioIntElegido = ej.clave;
+      pintarEjerciciosInt();
+    });
+    cont.appendChild(boton);
+  });
+
+  // Solo "encontrar" necesita elegir intervalo y orden
+  const esEncontrar = ejercicioIntElegido === 'encontrar';
+  $('opciones-encontrar').style.display = esEncontrar ? '' : 'none';
+  $('opciones-identificar').style.display = esEncontrar ? 'none' : '';
+  pintarStats('intervalos', statsPorEjercicioInt[ejercicioIntElegido]);
+}
 
 function pintarIntervalos(){
   const cont = $('interval-grid');
@@ -923,9 +969,9 @@ function pintarModos(){
 
 function abrirIntervalos(){
   juegoActual = 'intervalos';
+  pintarEjerciciosInt();
   pintarIntervalos();
   pintarModos();
-  pintarStats('intervalos', statsIntervalos);
   mostrarPantalla('config-intervalos');
 }
 
@@ -944,47 +990,109 @@ function construirRaices(def){
   return raices;
 }
 
-function construirPreguntas(){
+// Las notas que hay desde la raíz hasta el destino, incluyendo ambas.
+// Sirve para mostrar por qué Re → Fa es una tercera: Re, Mi, Fa.
+function recorrido(indiceRaiz, pasos){
+  const notas = [];
+  for(let k = 0; k <= pasos; k++) notas.push(ESCALA[(indiceRaiz + k) % 7]);
+  return notas;
+}
+
+function preguntasEncontrar(){
   const def = INTERVALOS.find(d => d.clave === intervaloElegido) || INTERVALOS[0];
   return construirRaices(def).map(indice => {
-    const raiz = ESCALA[indice];
     const correcta = ESCALA[(indice + def.pasos) % 7];
     const distractores = revolver(ESCALA.filter(n => n !== correcta)).slice(0, 3);
-    const opciones = revolver([correcta, ...distractores]);
-    return { raiz, intervalo: def.minuscula, correcta, opciones };
+    return {
+      tipo: 'encontrar',
+      raiz: ESCALA[indice],
+      def,
+      correcta,
+      opciones: revolver([correcta, ...distractores]).map(n => ({ valor:n, texto:n }))
+    };
+  });
+}
+
+function preguntasIdentificar(){
+  // Los 6 intervalos una vez cada uno, más uno extra al azar: 7 preguntas
+  const pasos = revolver([1, 2, 3, 4, 5, 6, 1 + Math.floor(Math.random() * 6)]);
+  let anterior = null;
+
+  return pasos.map(p => {
+    // Evitamos repetir exactamente la misma pregunta dos veces seguidas
+    let indice;
+    do { indice = Math.floor(Math.random() * 7); }
+    while(anterior && anterior.indice === indice && anterior.pasos === p);
+    anterior = { indice, pasos:p };
+
+    const def = INTERVALOS.find(d => d.pasos === p);
+    return {
+      tipo: 'identificar',
+      raiz: ESCALA[indice],
+      destino: ESCALA[(indice + p) % 7],
+      def,
+      recorrido: recorrido(indice, p),
+      correcta: def.clave,
+      // Siempre las 6 opciones y en el mismo orden, para no adivinar por descarte
+      opciones: INTERVALOS.map(d => ({ valor:d.clave, texto:d.nombre }))
+    };
   });
 }
 
 function empezarIntervalos(){
   juegoActual = 'intervalos';
-  sesion = { preguntas: construirPreguntas(), indice:0, puntaje:0, respondida:false, elegida:null };
+  sesion = {
+    ejercicio: ejercicioIntElegido,
+    preguntas: ejercicioIntElegido === 'identificar' ? preguntasIdentificar() : preguntasEncontrar(),
+    indice: 0,
+    puntaje: 0,
+    respondida: false,
+    elegida: null
+  };
   mostrarPantalla('intervalos');
   pintarPregunta();
 }
 
 function pintarPregunta(){
   const p = sesion.preguntas[sesion.indice];
+  const total = sesion.preguntas.length;
 
-  const avance = (sesion.indice + (sesion.respondida ? 1 : 0)) / TOTAL_PREGUNTAS;
+  const avance = (sesion.indice + (sesion.respondida ? 1 : 0)) / total;
   $('progress-intervalos').style.width = Math.round(avance * 100) + '%';
-  $('count-intervalos').textContent = (sesion.indice + 1) + '/' + TOTAL_PREGUNTAS;
+  $('count-intervalos').textContent = (sesion.indice + 1) + '/' + total;
 
-  $('root-note').textContent = p.raiz;
-  $('question-text').innerHTML = '¿Cuál es la <em>' + p.intervalo + '</em> de ' + p.raiz + '?';
+  // Las notas que se muestran arriba
+  if(p.tipo === 'identificar'){
+    $('note-display').innerHTML =
+      '<div class="note-pair">' +
+        '<div class="root-note">' + p.raiz + '</div>' +
+        '<div class="note-arrow">→</div>' +
+        '<div class="root-note">' + p.destino + '</div>' +
+      '</div>' +
+      '<div class="root-label">intervalo ascendente</div>';
+    $('question-text').innerHTML = '¿Qué intervalo hay de ' + p.raiz + ' a ' + p.destino + '?';
+  } else {
+    $('note-display').innerHTML =
+      '<div class="root-note">' + p.raiz + '</div>' +
+      '<div class="root-label">nota de referencia</div>';
+    $('question-text').innerHTML = '¿Cuál es la <em>' + p.def.minuscula + '</em> de ' + p.raiz + '?';
+  }
 
+  // Las opciones
   const cont = $('options');
+  cont.className = 'options' + (p.tipo === 'identificar' ? ' seis' : '');
   cont.innerHTML = '';
-  p.opciones.forEach(nota => {
+  p.opciones.forEach(op => {
     const boton = document.createElement('button');
-    boton.className = 'option';
-    boton.textContent = nota;
+    boton.className = 'option' + (p.tipo === 'identificar' ? ' sm' : '');
+    boton.textContent = op.texto;
     boton.disabled = sesion.respondida;
     if(sesion.respondida){
-      if(nota === p.correcta)          boton.classList.add('correct');
-      else if(nota === sesion.elegida) boton.classList.add('wrong');
-      else                             boton.classList.add('dim');
+      if(op.valor === p.correcta)          boton.classList.add('correct');
+      else if(op.valor === sesion.elegida) boton.classList.add('wrong');
+      else                                 boton.classList.add('dim');
     } else {
-      boton.addEventListener('click', () => responder(nota));
+      boton.addEventListener('click', () => responder(op.valor));
     }
     cont.appendChild(boton);
   });
@@ -992,17 +1100,19 @@ function pintarPregunta(){
   pintarRetroIntervalos();
 }
 
-function responder(nota){
+function responder(valor){
   if(sesion.respondida) return;
   const p = sesion.preguntas[sesion.indice];
-  const acerto = nota === p.correcta;
+  const acerto = valor === p.correcta;
+  const ejercicio = EJERCICIOS_INT.find(e => e.clave === sesion.ejercicio);
+  const stats = statsPorEjercicioInt[sesion.ejercicio];
 
-  registrar(statsIntervalos, acerto);
-  guardar('intervalos-stats-v1', statsIntervalos);
+  registrar(stats, acerto);
+  guardar(ejercicio.guardado, stats);
   if(acerto) sesion.puntaje += 1;
 
   sesion.respondida = true;
-  sesion.elegida = nota;
+  sesion.elegida = valor;
   pintarPregunta();
 }
 
@@ -1013,25 +1123,36 @@ function pintarRetroIntervalos(){
 
   const p = sesion.preguntas[sesion.indice];
   const acerto = sesion.elegida === p.correcta;
-  const esUltima = sesion.indice + 1 >= TOTAL_PREGUNTAS;
+  const esUltima = sesion.indice + 1 >= sesion.preguntas.length;
 
   const texto = document.createElement('div');
   texto.className = 'feedback-text ' + (acerto ? 'ok' : 'no');
-  texto.textContent = acerto ? '¡Correcto!' : 'Era ' + p.correcta;
+  if(acerto) texto.textContent = '¡Correcto!';
+  else texto.textContent = p.tipo === 'identificar' ? 'Era una ' + p.def.minuscula : 'Era ' + p.correcta;
+  zona.append(texto);
+
+  // En "identificar" mostramos el conteo: Re, Mi, Fa = 3 notas = tercera
+  if(p.tipo === 'identificar'){
+    const detalle = document.createElement('div');
+    detalle.className = 'feedback-detail';
+    detalle.innerHTML = '<em>' + p.recorrido.join(' · ') + '</em> — ' + p.recorrido.length + ' notas';
+    zona.append(detalle);
+  }
 
   const boton = document.createElement('button');
   boton.className = 'btn btn-primary';
   boton.textContent = esUltima ? 'Ver resultado' : 'Siguiente';
   boton.addEventListener('click', siguientePregunta);
-
-  zona.append(texto, boton);
+  zona.append(boton);
 }
 
 function siguientePregunta(){
-  if(sesion.indice + 1 >= TOTAL_PREGUNTAS){
-    statsIntervalos.sesiones += 1;
-    guardar('intervalos-stats-v1', statsIntervalos);
-    mostrarResultado(sesion.puntaje, TOTAL_PREGUNTAS, 'Ciclo completado');
+  if(sesion.indice + 1 >= sesion.preguntas.length){
+    const ejercicio = EJERCICIOS_INT.find(e => e.clave === sesion.ejercicio);
+    const stats = statsPorEjercicioInt[sesion.ejercicio];
+    stats.sesiones += 1;
+    guardar(ejercicio.guardado, stats);
+    mostrarResultado(sesion.puntaje, sesion.preguntas.length, ejercicio.etiqueta);
   } else {
     sesion.indice += 1;
     sesion.respondida = false;
@@ -1068,6 +1189,11 @@ $('btn-start-intervalos').addEventListener('click', empezarIntervalos);
 $('btn-retry').addEventListener('click', () => {
   if(juegoActual === 'escalas') empezarEscalas();
   else empezarIntervalos();
+});
+// "Menú" regresa al menú del juego que estabas jugando, no al inicio
+$('btn-menu').addEventListener('click', () => {
+  if(juegoActual === 'escalas') abrirEscalas();
+  else abrirIntervalos();
 });
 </script>
 
