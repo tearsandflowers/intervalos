@@ -256,7 +256,7 @@ body{
       <button class="game-card" id="card-escalas">
         <div class="game-tag">Juego 1</div>
         <div class="game-name">Escalas</div>
-        <div class="game-desc">Toca en orden las notas de escalas mayores y menores.</div>
+        <div class="game-desc">Construye escalas de tónica a tónica, o identifica su armadura.</div>
       </button>
       <button class="game-card" id="card-intervalos">
         <div class="game-tag">Juego 2</div>
@@ -275,8 +275,11 @@ body{
 
     <div class="stats" id="stats-escalas" style="display:none;">
       <div class="stat"><div class="stat-value" id="stat-escalas-racha">0</div><div class="stat-label">Racha actual</div></div>
-      <div class="stat"><div class="stat-value" id="stat-escalas-precision">—</div><div class="stat-label">Escalas perfectas</div></div>
+      <div class="stat"><div class="stat-value" id="stat-escalas-precision">—</div><div class="stat-label">Sin errores</div></div>
     </div>
+
+    <div class="section-label">Tipo de ejercicio</div>
+    <div class="mode-grid" id="exercise-grid"></div>
 
     <div class="section-label">Elige un nivel</div>
     <div class="level-list" id="level-list"></div>
@@ -475,13 +478,34 @@ const NIVELES = [
   }
 ];
 
+// Dos ejercicios con las mismas escalas:
+// "construir" pide la escala de tónica a tónica; "armadura" pide cuántas alteraciones lleva y cuáles.
+const EJERCICIOS = [
+  { clave:'construir', nombre:'Construir',  desc:'Tócala de tónica a tónica',   guardado:'escalas-stats-v1',  etiqueta:'Escalas sin errores' },
+  { clave:'armadura',  nombre:'Armadura',   desc:'Cuántas alteraciones y cuáles', guardado:'armadura-stats-v1', etiqueta:'Armaduras sin errores' },
+];
+
+let ejercicioElegido = 'construir';
 let nivelElegido = 'sostenidos';
 let escalasElegidas = new Set();   // vacío = todas las del nivel
 let sesionEscalas = null;
-let statsEscalas = cargar('escalas-stats-v1', STATS_BASE);
+
+// Cada ejercicio lleva sus propias estadísticas
+const statsPorEjercicio = {};
+EJERCICIOS.forEach(e => statsPorEjercicio[e.clave] = cargar(e.guardado, STATS_BASE));
+
+function ejercicioActual(){
+  return EJERCICIOS.find(e => e.clave === ejercicioElegido) || EJERCICIOS[0];
+}
 
 function nivelActual(){
   return NIVELES.find(n => n.clave === nivelElegido) || NIVELES[0];
+}
+
+// "sostenido" -> "sostenidos", "bemol" -> "bemoles"
+function plural(palabra, cantidad){
+  if(cantidad === 1) return palabra;
+  return palabra + (palabra.endsWith('l') ? 'es' : 's');
 }
 
 // Construye las 7 notas de una escala a partir de su armadura.
@@ -499,6 +523,18 @@ function construirEscala(raiz, cantidad, nivel){
   return notas;
 }
 
+// Las alteraciones de una escala, en el orden en que se escriben en la armadura
+function armaduraDe(escala, nivel){
+  return nivel.ordenArmadura.slice(0, escala.cantidad).map(l => l + nivel.alteracion);
+}
+
+// La relativa comparte posición en la otra lista (Re mayor <-> Si menor)
+function relativaDe(escala, nivel){
+  return escala.tipo === 'mayor'
+    ? formatoNota(nivel.menores[escala.cantidad]) + ' menor'
+    : formatoNota(nivel.mayores[escala.cantidad]) + ' mayor';
+}
+
 // Las 16 escalas del nivel: 8 mayores + 8 menores.
 // La posición en la lista es justo el número de alteraciones.
 function escalasDelNivel(nivel){
@@ -507,6 +543,24 @@ function escalasDelNivel(nivel){
   nivel.menores.forEach((raiz, i) => lista.push({ raiz, tipo:'menor', cantidad:i }));
   lista.forEach(e => e.notas = construirEscala(e.raiz, e.cantidad, nivel));
   return lista;
+}
+
+function pintarEjercicios(){
+  const cont = $('exercise-grid');
+  cont.innerHTML = '';
+  EJERCICIOS.forEach(ej => {
+    const boton = document.createElement('button');
+    boton.className = 'choice' + (ej.clave === ejercicioElegido ? ' selected' : '');
+    boton.innerHTML =
+      '<div class="choice-name">' + ej.nombre + '</div>' +
+      '<div class="choice-desc">' + ej.desc + '</div>';
+    boton.addEventListener('click', () => {
+      ejercicioElegido = ej.clave;
+      pintarEjercicios();
+      pintarStats('escalas', statsPorEjercicio[ejercicioElegido]);
+    });
+    cont.appendChild(boton);
+  });
 }
 
 function pintarNiveles(){
@@ -554,85 +608,118 @@ function pintarSelectorEscalas(){
 
   const n = escalasElegidas.size;
   $('scale-helper').textContent = n === 0
-    ? 'Toca una o varias. Si no eliges ninguna, se mezclan las ' + (nivel.mayores.length + nivel.menores.length) + '.'
-    : (n === 1 ? '1 escala elegida: la practicarás 7 veces seguidas.' : n + ' escalas elegidas.');
+    ? 'Toca una o varias. Si no eliges ninguna, salen ' + TOTAL_ESCALAS + ' al azar de las ' + (nivel.mayores.length + nivel.menores.length) + '.'
+    : (n === 1 ? '1 escala elegida: practicarás solo esa.' : n + ' escalas elegidas: cada una sale una vez.');
 }
 
-// Arma las 7 rondas de la sesión a partir de las escalas disponibles.
-// Si hay menos de 7, se repiten revueltas, evitando la misma escala dos veces seguidas.
-function armarSesion(disponibles){
-  let rondas = [];
-  while(rondas.length < TOTAL_ESCALAS){
-    const tanda = revolver(disponibles);
-    const ultima = rondas[rondas.length - 1];
-    if(ultima && tanda.length > 1 && tanda[0] === ultima){
-      [tanda[0], tanda[1]] = [tanda[1], tanda[0]];
-    }
-    rondas = rondas.concat(tanda);
+// Arma las rondas de la sesión.
+// Si elegiste escalas, salen solo esas, una vez cada una, en orden revuelto.
+// Si no elegiste ninguna, salen 7 al azar de todas las del nivel.
+function armarSesion(todas){
+  if(escalasElegidas.size > 0){
+    return revolver(todas.filter(e => escalasElegidas.has(claveEscala(e))));
   }
-  return rondas.slice(0, TOTAL_ESCALAS);
+  return revolver(todas).slice(0, TOTAL_ESCALAS);
 }
 
 function abrirEscalas(){
   juegoActual = 'escalas';
+  pintarEjercicios();
   pintarNiveles();
   pintarSelectorEscalas();
-  pintarStats('escalas', statsEscalas);
+  pintarStats('escalas', statsPorEjercicio[ejercicioElegido]);
   mostrarPantalla('config-escalas');
 }
 
 function empezarEscalas(){
   juegoActual = 'escalas';
-  const todas = escalasDelNivel(nivelActual());
-  const disponibles = escalasElegidas.size > 0
-    ? todas.filter(e => escalasElegidas.has(claveEscala(e)))
-    : todas;
-  const escalas = armarSesion(disponibles);
-  sesionEscalas = { escalas, indice:0, puntaje:0 };
+  sesionEscalas = {
+    ejercicio: ejercicioElegido,
+    escalas: armarSesion(escalasDelNivel(nivelActual())),
+    indice: 0,
+    puntaje: 0
+  };
   prepararEscala();
   mostrarPantalla('escalas');
 }
 
-// Reinicia los contadores para la escala actual y la dibuja
+// Reinicia los contadores para la escala actual
 function prepararEscala(){
   const s = sesionEscalas;
-  s.posicion = 0;            // cuántas notas lleva bien
   s.errores = 0;             // errores en toda la escala
-  s.erroresAqui = 0;         // errores en la nota que toca ahora
   s.terminada = false;
+  iniciarPaso(s.ejercicio === 'armadura' ? 'cantidad' : 'notas');
+}
+
+// Cada ronda tiene uno o dos pasos:
+//   construir -> "notas"
+//   armadura  -> "cantidad" y luego "cuales" (si la escala lleva alteraciones)
+// En cada paso, "objetivo" es la lista de respuestas que hay que tocar en orden.
+function iniciarPaso(paso){
+  const s = sesionEscalas;
+  const escala = s.escalas[s.indice];
+  const nivel = nivelActual();
+
+  s.paso = paso;
+  s.posicion = 0;            // cuántas respuestas lleva bien en este paso
+  s.erroresAqui = 0;         // errores en la respuesta que toca ahora
+
+  if(paso === 'notas')         s.objetivo = escala.notas.concat(escala.raiz);   // cierra con la tónica
+  else if(paso === 'cantidad') s.objetivo = [String(escala.cantidad)];
+  else                         s.objetivo = armaduraDe(escala, nivel);
+
   pintarEscala();
 }
 
 function pintarEscala(){
   const s = sesionEscalas;
   const escala = s.escalas[s.indice];
+  const nivel = nivelActual();
 
-  const avance = (s.indice + (s.terminada ? 1 : 0)) / TOTAL_ESCALAS;
+  const avance = (s.indice + (s.terminada ? 1 : 0)) / s.escalas.length;
   $('progress-escalas').style.width = Math.round(avance * 100) + '%';
-  $('count-escalas').textContent = (s.indice + 1) + '/' + TOTAL_ESCALAS;
+  $('count-escalas').textContent = (s.indice + 1) + '/' + s.escalas.length;
 
   $('scale-name').textContent = formatoNota(escala.raiz) + ' ' + escala.tipo;
-  $('scale-hint').textContent = escala.tipo === 'menor'
-    ? 'Menor natural · toca las 7 notas en orden'
-    : 'Toca las 7 notas en orden';
+
+  let pista;
+  if(s.paso === 'notas'){
+    pista = escala.tipo === 'menor'
+      ? 'Menor natural · de tónica a tónica, en orden'
+      : 'Toca de tónica a tónica, en orden';
+  } else if(s.paso === 'cantidad'){
+    pista = '¿Cuántos ' + plural(nivel.palabra, 2) + ' lleva?';
+  } else {
+    pista = '¿Cuáles? Tócalos en el orden de la armadura';
+  }
+  $('scale-hint').textContent = pista;
 
   pintarRanuras();
   pintarTablero();
   $('feedback-escalas').innerHTML = '';
 }
 
-// Las 7 casillas de arriba, donde van apareciendo las notas acertadas
+// Las casillas donde van apareciendo las respuestas acertadas
 function pintarRanuras(){
   const s = sesionEscalas;
-  const escala = s.escalas[s.indice];
   const cont = $('slots');
   cont.innerHTML = '';
 
-  for(let i = 0; i < 7; i++){
+  // En el paso "cantidad" no hacen falta casillas
+  cont.style.display = s.paso === 'cantidad' ? 'none' : '';
+
+  // Con 7 u 8 casillas llenan el ancho; con menos, las centramos con ancho fijo
+  const total = s.objetivo.length;
+  cont.style.gridTemplateColumns = total >= 7
+    ? 'repeat(' + total + ', 1fr)'
+    : 'repeat(' + total + ', calc((100% - 36px) / 7))';
+  cont.style.justifyContent = total >= 7 ? '' : 'center';
+
+  for(let i = 0; i < total; i++){
     const casilla = document.createElement('div');
     if(i < s.posicion){
       casilla.className = 'slot filled';
-      casilla.textContent = formatoNota(escala.notas[i]);
+      casilla.textContent = formatoNota(s.objetivo[i]);
     } else {
       casilla.className = 'slot' + (i === s.posicion && !s.terminada ? ' current' : '');
       casilla.textContent = '·';
@@ -641,43 +728,62 @@ function pintarRanuras(){
   }
 }
 
-// El tablero: fila de notas naturales y fila de notas alteradas
+// El tablero cambia según el paso
 function pintarTablero(){
+  const s = sesionEscalas;
   const nivel = nivelActual();
   const cont = $('board');
   cont.innerHTML = '';
+  cont.style.gridTemplateColumns = '';
 
-  const naturales = LETRAS;
-  const alteradas = LETRAS.map(l => l + nivel.alteracion);
+  const agregar = (valor, texto, clase) => {
+    const boton = document.createElement('button');
+    boton.className = 'note-btn' + (clase ? ' ' + clase : '');
+    boton.textContent = texto;
+    boton.dataset.nota = valor;
+    boton.addEventListener('click', () => tocarNota(valor, boton));
+    cont.appendChild(boton);
+  };
 
-  [naturales, alteradas].forEach((fila, f) => {
-    fila.forEach(nota => {
-      const boton = document.createElement('button');
-      boton.className = 'note-btn' + (f === 1 ? ' alterada' : '');
-      boton.textContent = formatoNota(nota);
-      boton.dataset.nota = nota;
-      boton.addEventListener('click', () => tocarNota(nota, boton));
-      cont.appendChild(boton);
-    });
-  });
+  if(s.paso === 'notas'){
+    // Fila de naturales y fila de alteradas
+    LETRAS.forEach(l => agregar(l, formatoNota(l)));
+    LETRAS.forEach(l => agregar(l + nivel.alteracion, formatoNota(l + nivel.alteracion), 'alterada'));
+  } else if(s.paso === 'cantidad'){
+    // Números del 0 al 7, en dos filas de 4
+    cont.style.gridTemplateColumns = 'repeat(4, 1fr)';
+    for(let n = 0; n <= 7; n++) agregar(String(n), String(n));
+  } else {
+    // Solo las 7 alteradas, en orden de letras (no de armadura, para no regalar la respuesta)
+    LETRAS.forEach(l => agregar(l + nivel.alteracion, formatoNota(l + nivel.alteracion), 'alterada'));
+  }
 }
 
-function tocarNota(nota, boton){
+function tocarNota(valor, boton){
   const s = sesionEscalas;
   if(s.terminada) return;
 
-  const esperada = s.escalas[s.indice].notas[s.posicion];
+  const esperada = s.objetivo[s.posicion];
 
-  if(nota === esperada){
+  if(valor === esperada){
     s.posicion += 1;
     s.erroresAqui = 0;
     document.querySelectorAll('.note-btn.pista').forEach(b => b.classList.remove('pista'));
-    if(s.posicion >= 7) terminarEscala();
+
+    if(s.posicion >= s.objetivo.length){
+      const escala = s.escalas[s.indice];
+      // Si acertó la cantidad y la escala sí lleva alteraciones, falta decir cuáles
+      if(s.paso === 'cantidad' && escala.cantidad > 0){
+        iniciarPaso('cuales');
+        return;
+      }
+      terminarEscala();
+    }
     pintarRanuras();
     return;
   }
 
-  // Nota equivocada: sacudimos el botón y contamos el error
+  // Respuesta equivocada: sacudimos el botón y contamos el error
   s.errores += 1;
   s.erroresAqui += 1;
   boton.classList.remove('error');
@@ -685,7 +791,7 @@ function tocarNota(nota, boton){
   boton.classList.add('error');
   setTimeout(() => boton.classList.remove('error'), 450);
 
-  // Después de 2 errores en la misma nota, señalamos la correcta
+  // Después de 2 errores en la misma respuesta, señalamos la correcta
   if(s.erroresAqui >= 2){
     const correcta = document.querySelector('.note-btn[data-nota="' + esperada + '"]');
     if(correcta) correcta.classList.add('pista');
@@ -696,20 +802,20 @@ function terminarEscala(){
   const s = sesionEscalas;
   const escala = s.escalas[s.indice];
   const nivel = nivelActual();
+  const ejercicio = EJERCICIOS.find(e => e.clave === s.ejercicio);
+  const stats = statsPorEjercicio[s.ejercicio];
   const perfecta = s.errores === 0;
 
   s.terminada = true;
   if(perfecta) s.puntaje += 1;
-  registrar(statsEscalas, perfecta);
-  guardar('escalas-stats-v1', statsEscalas);
+  registrar(stats, perfecta);
+  guardar(ejercicio.guardado, stats);
 
   document.querySelectorAll('#board .note-btn').forEach(b => b.disabled = true);
-  $('progress-escalas').style.width = Math.round((s.indice + 1) / TOTAL_ESCALAS * 100) + '%';
+  $('progress-escalas').style.width = Math.round((s.indice + 1) / s.escalas.length * 100) + '%';
 
-  // Retroalimentación: resultado + qué alteraciones lleva la escala
-  const alteraciones = nivel.ordenArmadura.slice(0, escala.cantidad).map(l => formatoNota(l + nivel.alteracion));
-  const palabra = escala.cantidad === 1 ? nivel.palabra : nivel.palabra + (nivel.palabra.endsWith('l') ? 'es' : 's');
-  const esUltima = s.indice + 1 >= TOTAL_ESCALAS;
+  const alteraciones = armaduraDe(escala, nivel).map(formatoNota);
+  const esUltima = s.indice + 1 >= s.escalas.length;
 
   const zona = $('feedback-escalas');
   zona.innerHTML = '';
@@ -719,27 +825,39 @@ function terminarEscala(){
   texto.textContent = perfecta
     ? '¡Perfecta!'
     : 'Completada con ' + s.errores + (s.errores === 1 ? ' error' : ' errores');
+  zona.append(texto);
 
   const detalle = document.createElement('div');
   detalle.className = 'feedback-detail';
   detalle.textContent = escala.cantidad === 0
     ? 'No lleva alteraciones'
-    : 'Lleva ' + escala.cantidad + ' ' + palabra + ': ' + alteraciones.join(', ');
+    : 'Lleva ' + escala.cantidad + ' ' + plural(nivel.palabra, escala.cantidad) + ': ' + alteraciones.join(', ');
+  zona.append(detalle);
+
+  // En el ejercicio de armadura, recordamos con qué escala la comparte
+  if(s.ejercicio === 'armadura'){
+    const relativa = document.createElement('div');
+    relativa.className = 'feedback-detail';
+    relativa.textContent = 'Misma armadura que ' + relativaDe(escala, nivel);
+    zona.append(relativa);
+  }
 
   const boton = document.createElement('button');
   boton.className = 'btn btn-primary';
   boton.textContent = esUltima ? 'Ver resultado' : 'Siguiente';
   boton.addEventListener('click', siguienteEscala);
-
-  zona.append(texto, detalle, boton);
+  zona.append(boton);
 }
+
 
 function siguienteEscala(){
   const s = sesionEscalas;
-  if(s.indice + 1 >= TOTAL_ESCALAS){
-    statsEscalas.sesiones += 1;
-    guardar('escalas-stats-v1', statsEscalas);
-    mostrarResultado(s.puntaje, TOTAL_ESCALAS, 'Escalas sin errores');
+  if(s.indice + 1 >= s.escalas.length){
+    const ejercicio = EJERCICIOS.find(e => e.clave === s.ejercicio);
+    const stats = statsPorEjercicio[s.ejercicio];
+    stats.sesiones += 1;
+    guardar(ejercicio.guardado, stats);
+    mostrarResultado(s.puntaje, s.escalas.length, ejercicio.etiqueta);
   } else {
     s.indice += 1;
     prepararEscala();
