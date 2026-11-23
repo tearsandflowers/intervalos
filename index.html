@@ -138,6 +138,7 @@ body{
 .mastil-cuerda{stroke:var(--text);opacity:.7;}
 .mastil-marca{fill:var(--faint);opacity:.6;}
 .mastil-punto{fill:var(--accent);}
+.mastil-punto2{fill:var(--bg);stroke:var(--accent);stroke-width:3;}
 .mastil-txt{fill:var(--muted);font-family:var(--sans);font-size:11px;}
 
 /* ---- Accesibilidad: foco visible con teclado ---- */
@@ -421,18 +422,35 @@ button:focus-visible{outline:2px solid var(--accent);outline-offset:2px;}
 
     <div class="repaso" id="repaso-guitarra" style="display:none;"></div>
 
-    <div class="section-label">Notas</div>
-    <div class="mode-grid" id="gui-notas-grid"></div>
+    <div class="section-label">Tipo de ejercicio</div>
+    <div class="mode-grid" id="gui-exercise-grid"></div>
 
     <div class="section-label">Zona del mástil</div>
     <div class="mode-grid" id="gui-zona-grid"></div>
 
-    <div class="section-label">Cuerdas</div>
-    <p class="helper" id="gui-helper"></p>
-    <div class="chip-grid tres" id="gui-chips"></div>
+    <div id="gui-op-notas">
+      <div class="section-label">Notas</div>
+      <div class="mode-grid" id="gui-notas-grid"></div>
+
+      <div class="section-label">Cuerdas</div>
+      <p class="helper" id="gui-helper"></p>
+      <div class="chip-grid tres" id="gui-chips"></div>
+    </div>
+
+    <div id="gui-op-intervalos" style="display:none;">
+      <div class="section-label">Intervalos a practicar</div>
+      <p class="helper" id="gui-int-helper"></p>
+      <div class="chip-grid" id="gui-int-chips"></div>
+      <p class="helper leyenda">m = menor · M = mayor · J = justa. La nota de referencia es siempre la más grave de las dos.</p>
+
+      <div class="section-label">Cuerdas vecinas</div>
+      <p class="helper" id="gui-pares-helper"></p>
+      <div class="chip-grid tres" id="gui-pares-chips"></div>
+    </div>
 
     <div class="spacer"></div>
-    <button class="btn btn-primary" id="btn-start-guitarra">Empezar práctica</button>
+    <p class="helper" id="gui-aviso" style="color:var(--error);margin:12px 0 0;"></p>
+    <button class="btn btn-primary" id="btn-start-guitarra" style="margin-top:12px;">Empezar práctica</button>
   </section>
 
   <!-- ============ PRÁCTICA: GUITARRA ============ -->
@@ -1460,14 +1478,14 @@ function preguntasCualidad(modo){
    ========================================================= */
 
 // De la 1ª cuerda (la aguda, arriba en el dibujo) a la 6ª (la grave).
-// pc = altura de la cuerda al aire, en semitonos desde Do.
+// pc = altura de la cuerda al aire en semitonos desde Do; abs = altura absoluta (Mi grave = 40).
 const CUERDAS = [
-  { num:1, nombre:'Mi',  pc:4  },
-  { num:2, nombre:'Si',  pc:11 },
-  { num:3, nombre:'Sol', pc:7  },
-  { num:4, nombre:'Re',  pc:2  },
-  { num:5, nombre:'La',  pc:9  },
-  { num:6, nombre:'Mi',  pc:4  },
+  { num:1, nombre:'Mi',  pc:4,  abs:64 },
+  { num:2, nombre:'Si',  pc:11, abs:59 },
+  { num:3, nombre:'Sol', pc:7,  abs:55 },
+  { num:4, nombre:'Re',  pc:2,  abs:50 },
+  { num:5, nombre:'La',  pc:9,  abs:45 },
+  { num:6, nombre:'Mi',  pc:4,  abs:40 },
 ];
 const NOMBRES_PC = ['Do','Do#/Reb','Re','Re#/Mib','Mi','Fa','Fa#/Solb','Sol','Sol#/Lab','La','La#/Sib','Si'];
 const PC_NATURALES = [0, 2, 4, 5, 7, 9, 11];
@@ -1481,13 +1499,39 @@ const ZONAS_GUI = [
   { clave:'5',  nombre:'Primeros trastes', desc:'Del 0 (al aire) al 5' },
   { clave:'12', nombre:'Todo el mástil',   desc:'Del 0 (al aire) al 12' },
 ];
-const GUITARRA = { guardado:'guitarra-stats-v1', etiqueta:'Notas encontradas' };
+
+// Los ejercicios del juego de guitarra ("armar" crea las preguntas; "repaso" es el prefijo de sus puntos débiles)
+const EJERCICIOS_GUI = [
+  { clave:'notas',      nombre:'Notas en el mástil',      desc:'Te marco una posición, tú la nota',            guardado:'guitarra-stats-v1',            etiqueta:'Notas encontradas',        repaso:'gui:', armar:preguntasGuitarra },
+  { clave:'intervalos', nombre:'Intervalos en el mástil', desc:'Dos notas en cuerdas vecinas, tú el intervalo', guardado:'guitarra-intervalos-stats-v1', etiqueta:'Intervalos identificados', repaso:'gi:',  armar:preguntasGuitarraIntervalos },
+];
+
+// Intervalos del mástil. Sin nombres de nota a la vista, el tritono sería ambiguo (4ª aum. o 5ª dism.), así que no entra.
+const INTERVALOS_GUI = [
+  { clave:'2m', semis:1,  nombre:'2ª menor' },
+  { clave:'2M', semis:2,  nombre:'2ª mayor' },
+  { clave:'3m', semis:3,  nombre:'3ª menor' },
+  { clave:'3M', semis:4,  nombre:'3ª mayor' },
+  { clave:'4J', semis:5,  nombre:'4ª justa' },
+  { clave:'5J', semis:7,  nombre:'5ª justa' },
+  { clave:'8J', semis:12, nombre:'Octava' },
+];
+const PARES_GUI = [6, 5, 4, 3, 2];   // cada par es (n, n-1): 6ª–5ª, 5ª–4ª…
 const TOTAL_GUITARRA = 10;
 
 let guitarraCuerdas = new Set();   // vacío = todas
 let guitarraNotas = 'naturales';
 let guitarraZona = '12';
-const statsGuitarra = cargar(GUITARRA.guardado, STATS_BASE);
+let guitarraEj = 'notas';
+let guitarraIntervalos = new Set();   // vacío = todos
+let guitarraPares = new Set();        // vacío = todos
+const statsGuitarraPorEj = {};
+EJERCICIOS_GUI.forEach(e => statsGuitarraPorEj[e.clave] = cargar(e.guardado, STATS_BASE));
+
+function ejercicioGuiActual(){
+  return EJERCICIOS_GUI.find(e => e.clave === guitarraEj) || EJERCICIOS_GUI[0];
+}
+function cuerdaPorNum(n){ return CUERDAS.find(c => c.num === n); }
 
 // "Fa#/Solb" -> "Fa♯ / Sol♭"
 function nombrePC(pc){
@@ -1496,31 +1540,51 @@ function nombrePC(pc){
 
 function textoTraste(traste){ return traste === 0 ? 'al aire' : 'traste ' + traste; }
 
-function pintarConfigGuitarra(){
-  pintarTarjetas('gui-notas-grid', NOTAS_GUI, guitarraNotas, clave => { guitarraNotas = clave; pintarConfigGuitarra(); });
-  pintarTarjetas('gui-zona-grid', ZONAS_GUI, guitarraZona, clave => { guitarraZona = clave; pintarConfigGuitarra(); });
-
-  const cont = $('gui-chips');
+// Dibuja una fila de chips de selección múltiple (vacío = todos)
+function pintarChipsMulti(idContenedor, lista, elegidos, etiqueta, alCambiar){
+  const cont = $(idContenedor);
   cont.innerHTML = '';
-  CUERDAS.forEach(c => {
+  lista.forEach(item => {
     const boton = document.createElement('button');
-    boton.className = 'chip' + (guitarraCuerdas.has(c.num) ? ' selected' : '');
-    boton.textContent = c.num + 'ª · ' + c.nombre;
+    boton.className = 'chip' + (elegidos.has(item.clave) ? ' selected' : '');
+    boton.textContent = etiqueta(item);
+    if(item.nombre) boton.setAttribute('aria-label', item.nombre);
     boton.addEventListener('click', () => {
-      if(guitarraCuerdas.has(c.num)) guitarraCuerdas.delete(c.num);
-      else guitarraCuerdas.add(c.num);
-      pintarConfigGuitarra();
+      if(elegidos.has(item.clave)) elegidos.delete(item.clave);
+      else elegidos.add(item.clave);
+      alCambiar();
     });
     cont.appendChild(boton);
   });
+}
 
-  const n = guitarraCuerdas.size;
-  $('gui-helper').textContent = n === 0
-    ? 'Toca una o varias. Si no eliges ninguna, salen las 6.'
-    : (n === 1 ? '1 cuerda elegida.' : n + ' cuerdas elegidas.');
+function textoElegidos(n, singular, plural){
+  return n === 0 ? null : (n === 1 ? '1 ' + singular + ' elegido.' : n + ' ' + plural + ' elegidos.');
+}
 
-  pintarStats('guitarra', statsGuitarra);
-  pintarRepaso('repaso-guitarra', 'gui:');
+function pintarConfigGuitarra(){
+  const ej = ejercicioGuiActual();
+  pintarTarjetas('gui-exercise-grid', EJERCICIOS_GUI, guitarraEj, clave => { guitarraEj = clave; pintarConfigGuitarra(); });
+  pintarTarjetas('gui-zona-grid', ZONAS_GUI, guitarraZona, clave => { guitarraZona = clave; pintarConfigGuitarra(); });
+  $('gui-op-notas').style.display = ej.clave === 'notas' ? '' : 'none';
+  $('gui-op-intervalos').style.display = ej.clave === 'intervalos' ? '' : 'none';
+  $('gui-aviso').textContent = '';
+
+  // Ejercicio "notas"
+  pintarTarjetas('gui-notas-grid', NOTAS_GUI, guitarraNotas, clave => { guitarraNotas = clave; pintarConfigGuitarra(); });
+  const cuerdas = CUERDAS.map(c => ({ clave:c.num, nombre:c.num + 'ª cuerda', c }));
+  pintarChipsMulti('gui-chips', cuerdas, guitarraCuerdas, it => it.c.num + 'ª · ' + it.c.nombre, pintarConfigGuitarra);
+  $('gui-helper').textContent = textoElegidos(guitarraCuerdas.size, 'cuerda', 'cuerdas') || 'Toca una o varias. Si no eliges ninguna, salen las 6.';
+
+  // Ejercicio "intervalos"
+  pintarChipsMulti('gui-int-chips', INTERVALOS_GUI, guitarraIntervalos, it => it.clave, pintarConfigGuitarra);
+  $('gui-int-helper').textContent = textoElegidos(guitarraIntervalos.size, 'intervalo', 'intervalos') || 'Toca uno o varios. Si no eliges ninguno, salen los 7.';
+  const pares = PARES_GUI.map(n => ({ clave:n, nombre:'cuerdas ' + n + 'ª y ' + (n - 1) + 'ª' }));
+  pintarChipsMulti('gui-pares-chips', pares, guitarraPares, it => it.clave + 'ª–' + (it.clave - 1) + 'ª', pintarConfigGuitarra);
+  $('gui-pares-helper').textContent = textoElegidos(guitarraPares.size, 'par', 'pares') || 'Las dos notas van en cuerdas vecinas. Si no eliges ninguno, salen los 5 pares.';
+
+  pintarStats('guitarra', statsGuitarraPorEj[ej.clave]);
+  pintarRepaso('repaso-guitarra', ej.repaso);
 }
 
 function abrirGuitarra(){
@@ -1530,7 +1594,13 @@ function abrirGuitarra(){
 }
 
 function empezarGuitarra(){
-  empezarQuiz('guitarra', GUITARRA, statsGuitarra, preguntasGuitarra());
+  const ej = ejercicioGuiActual();
+  const preguntas = ej.armar();
+  if(preguntas.length === 0){
+    $('gui-aviso').textContent = 'No hay posiciones con esa combinación. Prueba con otra zona del mástil o con más intervalos.';
+    return;
+  }
+  empezarQuiz('guitarra', ej, statsGuitarraPorEj[ej.clave], preguntas);
 }
 
 // Todas las posiciones (cuerda + traste) que cumplen la configuración
@@ -1555,7 +1625,7 @@ function preguntasGuitarra(){
   return muestreoPonderado(posiciones, cantidad, pos => 'gui:' + pos.cuerda.num + ':' + pos.traste).map(pos => {
     const distractores = revolver(permitidas.filter(pc => pc !== pos.pc)).slice(0, 3);
     return {
-      encabezado: dibujarMastil(pos.cuerda.num, pos.traste),
+      encabezado: dibujarMastil([{ cuerda:pos.cuerda.num, traste:pos.traste }]),
       texto: '¿Qué nota es?',
       correcta: String(pos.pc),
       textoError: 'Era ' + nombrePC(pos.pc),
@@ -1568,9 +1638,60 @@ function preguntasGuitarra(){
   });
 }
 
-// Dibuja el mástil en SVG con un círculo en la cuerda y el traste de la pregunta.
+// Todas las formas posibles de un intervalo entre dos cuerdas vecinas, dentro de la zona elegida.
+// La nota de referencia es la más grave; puede estar en cualquiera de las dos cuerdas del par.
+function formasDeIntervalo(def){
+  const N = Number(guitarraZona);
+  const pares = guitarraPares.size > 0 ? PARES_GUI.filter(n => guitarraPares.has(n)) : PARES_GUI;
+  const formas = [];
+  pares.forEach(n => {
+    const a = cuerdaPorNum(n), b = cuerdaPorNum(n - 1);
+    [[a, b], [b, a]].forEach(([desde, hacia]) => {
+      for(let f1 = 0; f1 <= N; f1++){
+        const f2 = desde.abs + f1 + def.semis - hacia.abs;
+        if(f2 >= 0 && f2 <= N) formas.push({ desde, f1, hacia, f2 });
+      }
+    });
+  });
+  return formas;
+}
+
+function preguntasGuitarraIntervalos(){
+  const elegidos = guitarraIntervalos.size > 0 ? INTERVALOS_GUI.filter(d => guitarraIntervalos.has(d.clave)) : INTERVALOS_GUI;
+  const viables = elegidos.filter(d => formasDeIntervalo(d).length > 0);
+  const usadas = new Set();
+
+  return muestreoPonderado(viables, TOTAL_GUITARRA, d => 'gi:' + d.clave).map(def => {
+    // Una forma al azar, intentando no repetir posiciones dentro de la sesión
+    const formas = revolver(formasDeIntervalo(def));
+    const f = formas.find(x => !usadas.has(x.desde.num + ':' + x.f1 + ':' + x.hacia.num)) || formas[0];
+    usadas.add(f.desde.num + ':' + f.f1 + ':' + f.hacia.num);
+
+    const notaA = nombrePC((f.desde.pc + f.f1) % 12);
+    const notaB = nombrePC((f.hacia.pc + f.f2) % 12);
+    // 6 opciones: el correcto y 5 de los otros (siempre de los 7, para no adivinar por descarte)
+    const otros = revolver(INTERVALOS_GUI.filter(d => d !== def)).slice(0, 5);
+    return {
+      encabezado: dibujarMastil([
+        { cuerda:f.desde.num, traste:f.f1, tipo:'ref' },
+        { cuerda:f.hacia.num, traste:f.f2, tipo:'meta' }
+      ]) + '<div class="root-label">● nota de referencia (la más grave) · ○ la otra nota</div>',
+      texto: '¿Qué intervalo hay entre las dos notas?',
+      correcta: def.clave,
+      textoError: def.clave === '8J' ? 'Era una octava' : 'Era una ' + def.nombre,
+      detalle: '<em>' + notaA + ' → ' + notaB + '</em> · ' + def.semis + (def.semis === 1 ? ' semitono' : ' semitonos'),
+      repasoId: 'gi:' + def.clave,
+      repasoEt: def.nombre,
+      claseOpciones: 'seis',
+      claseBoton: 'sm xs',
+      opciones: [def, ...otros].sort((x, y) => x.semis - y.semis).map(d => ({ valor:d.clave, texto:d.nombre }))
+    };
+  });
+}
+
+// Dibuja el mástil en SVG con un círculo por cada punto { cuerda, traste, tipo } de la pregunta (tipo 'meta' = círculo hueco).
 // La 1ª cuerda va arriba, el traste 0 (cuerda al aire) a la izquierda de la cejilla.
-function dibujarMastil(cuerdaNum, traste){
+function dibujarMastil(puntos){
   const N = Number(guitarraZona);
   const x0 = 44, largo = 336, ancho = largo / N;
   const ys = [26, 54, 82, 110, 138, 166];
@@ -1578,7 +1699,7 @@ function dibujarMastil(cuerdaNum, traste){
   const centro = k => x0 + (k - 0.5) * ancho;
   const punto = (cx, cy, r, clase) => '<circle class="' + clase + '" cx="' + cx + '" cy="' + cy + '" r="' + r + '"/>';
 
-  let s = '<svg class="mastil" viewBox="0 0 400 212" role="img" aria-label="Cuerda ' + cuerdaNum + ', ' + textoTraste(traste) + '">';
+  let s = '<svg class="mastil" viewBox="0 0 400 212" role="img" aria-label="' + puntos.map(p => 'Cuerda ' + p.cuerda + ', ' + textoTraste(p.traste)).join(' y ') + '">';
   s += '<rect class="mastil-fondo" x="' + x0 + '" y="12" width="' + largo + '" height="170" rx="4"/>';
 
   // Marcas del mástil (3, 5, 7, 9 y doble en el 12)
@@ -1602,7 +1723,10 @@ function dibujarMastil(cuerdaNum, traste){
   }
 
   // El círculo de la pregunta (al aire: a la izquierda de la cejilla)
-  s += punto(traste === 0 ? 26 : centro(traste), ys[cuerdaNum - 1], 11, 'mastil-punto');
+  puntos.forEach(p => {
+    const hueco = p.tipo === 'meta';
+    s += punto(p.traste === 0 ? 26 : centro(p.traste), ys[p.cuerda - 1], hueco ? 9.5 : 11, hueco ? 'mastil-punto2' : 'mastil-punto');
+  });
   return s + '</svg>';
 }
 
