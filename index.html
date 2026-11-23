@@ -121,6 +121,27 @@ body{
 .helper{font-size:12px;color:var(--muted);line-height:1.5;margin:-4px 0 4px;}
 .mini-label{font-size:11px;color:var(--faint);margin:12px 0 6px;}
 .chip-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;}
+.chip-grid.tres{grid-template-columns:repeat(3,1fr);}
+.helper.leyenda{margin-top:12px;}
+
+/* ---- Repaso inteligente ---- */
+.repaso{margin-top:16px;padding:12px 15px;border:1px solid var(--divider);border-radius:var(--radius);}
+.repaso-titulo{font-size:11px;font-weight:500;color:var(--accent);text-transform:uppercase;letter-spacing:.1em;}
+.repaso-lista{font-size:13px;color:var(--muted);margin-top:5px;line-height:1.5;}
+
+/* ---- Mástil de la guitarra ---- */
+.note-wide{width:100%;}
+.mastil{display:block;width:100%;height:auto;}
+.mastil-fondo{fill:var(--surface);}
+.mastil-traste{stroke:var(--faint);stroke-width:1.5;}
+.mastil-cejilla{stroke:var(--muted);stroke-width:4;}
+.mastil-cuerda{stroke:var(--text);opacity:.7;}
+.mastil-marca{fill:var(--faint);opacity:.6;}
+.mastil-punto{fill:var(--accent);}
+.mastil-txt{fill:var(--muted);font-family:var(--sans);font-size:11px;}
+
+/* ---- Accesibilidad: foco visible con teclado ---- */
+button:focus-visible{outline:2px solid var(--accent);outline-offset:2px;}
 .chip{
   height:44px;border-radius:10px;
   border:1px solid transparent;
@@ -221,6 +242,7 @@ body{
 .option.dim{opacity:.4;}
 .options.seis{grid-template-columns:repeat(3,1fr);}
 .option.sm{height:64px;font-size:18px;}
+.option.xs{font-size:15px;padding:0 4px;}
 .note-pair{display:flex;align-items:center;justify-content:center;gap:14px;}
 .note-arrow{font-size:22px;color:var(--faint);}
 .feedback-detail em{font-style:normal;color:var(--text);}
@@ -266,7 +288,12 @@ body{
       <button class="game-card" id="card-intervalos">
         <div class="game-tag">Juego 2</div>
         <div class="game-name">Intervalos</div>
-        <div class="game-desc">Encuentra la nota a cierta distancia, o identifica el intervalo entre dos notas.</div>
+        <div class="game-desc">Encuentra la nota a cierta distancia, o identifica el intervalo entre dos notas, con o sin cualidad (mayor, menor, justa…).</div>
+      </button>
+      <button class="game-card" id="card-guitarra">
+        <div class="game-tag">Juego 3</div>
+        <div class="game-name">Guitarra</div>
+        <div class="game-desc">Aprende dónde está cada nota en el mástil: te marco una cuerda y un traste.</div>
       </button>
     </div>
   </section>
@@ -282,6 +309,8 @@ body{
       <div class="stat"><div class="stat-value" id="stat-escalas-racha">0</div><div class="stat-label">Racha actual</div></div>
       <div class="stat"><div class="stat-value" id="stat-escalas-precision">—</div><div class="stat-label">Sin errores</div></div>
     </div>
+
+    <div class="repaso" id="repaso-escalas" style="display:none;"></div>
 
     <div class="section-label">Tipo de ejercicio</div>
     <div class="mode-grid" id="exercise-grid"></div>
@@ -312,6 +341,8 @@ body{
       <div class="stat"><div class="stat-value" id="stat-intervalos-precision">—</div><div class="stat-label">Precisión</div></div>
     </div>
 
+    <div class="repaso" id="repaso-intervalos" style="display:none;"></div>
+
     <div class="section-label">Tipo de ejercicio</div>
     <div class="mode-grid" id="int-exercise-grid"></div>
 
@@ -325,7 +356,14 @@ body{
 
     <div id="opciones-identificar" style="display:none;">
       <div class="section-label">Cómo funciona</div>
-      <p class="helper">Te doy dos notas y tú dices qué intervalo hay entre ellas, subiendo. En cada ronda salen los 6 intervalos, desde notas al azar.</p>
+      <p class="helper">Te doy dos notas y tú dices qué intervalo hay entre ellas, subiendo. En cada ronda salen los 6 intervalos desde notas al azar, y el séptimo es el que más fallas.</p>
+    </div>
+
+    <div id="opciones-cualidad" style="display:none;">
+      <div class="section-label">Intervalos a practicar</div>
+      <p class="helper" id="cualidad-helper"></p>
+      <div class="chip-grid" id="chips-cualidad"></div>
+      <p class="helper leyenda">m = menor · M = mayor · J = justa · A = aumentada · d = disminuida. Las notas pueden llevar ♯ o ♭.</p>
     </div>
 
     <div class="spacer"></div>
@@ -349,7 +387,7 @@ body{
       <div class="board" id="board"></div>
     </div>
 
-    <div class="feedback-zone" id="feedback-escalas"></div>
+    <div class="feedback-zone" id="feedback-escalas" aria-live="polite"></div>
   </section>
 
   <!-- ============ PRÁCTICA: INTERVALOS ============ -->
@@ -361,12 +399,57 @@ body{
     </div>
 
     <div class="question-area">
-      <div id="note-display"></div>
-      <div class="question-text" id="question-text"></div>
-      <div class="options" id="options"></div>
+      <div id="note-display-intervalos"></div>
+      <div class="question-text" id="question-text-intervalos"></div>
+      <div class="options" id="options-intervalos"></div>
     </div>
 
-    <div class="feedback-zone" id="feedback-intervalos"></div>
+    <div class="feedback-zone" id="feedback-intervalos" aria-live="polite"></div>
+  </section>
+
+  <!-- ============ CONFIGURACIÓN: GUITARRA ============ -->
+  <section id="screen-config-guitarra" class="screen">
+    <div class="header-row">
+      <button class="icon-btn" data-ir="home" aria-label="Volver">&#8249;</button>
+      <h1 class="title title-sm">Guitarra</h1>
+    </div>
+
+    <div class="stats" id="stats-guitarra" style="display:none;">
+      <div class="stat"><div class="stat-value" id="stat-guitarra-racha">0</div><div class="stat-label">Racha actual</div></div>
+      <div class="stat"><div class="stat-value" id="stat-guitarra-precision">—</div><div class="stat-label">Precisión</div></div>
+    </div>
+
+    <div class="repaso" id="repaso-guitarra" style="display:none;"></div>
+
+    <div class="section-label">Notas</div>
+    <div class="mode-grid" id="gui-notas-grid"></div>
+
+    <div class="section-label">Zona del mástil</div>
+    <div class="mode-grid" id="gui-zona-grid"></div>
+
+    <div class="section-label">Cuerdas</div>
+    <p class="helper" id="gui-helper"></p>
+    <div class="chip-grid tres" id="gui-chips"></div>
+
+    <div class="spacer"></div>
+    <button class="btn btn-primary" id="btn-start-guitarra">Empezar práctica</button>
+  </section>
+
+  <!-- ============ PRÁCTICA: GUITARRA ============ -->
+  <section id="screen-guitarra" class="screen">
+    <div class="practice-top">
+      <button class="icon-btn" data-ir="config-guitarra" aria-label="Salir">&#10005;</button>
+      <div class="progress-track"><div class="progress-fill" id="progress-guitarra"></div></div>
+      <span class="progress-count" id="count-guitarra">1/10</span>
+    </div>
+
+    <div class="question-area">
+      <div class="note-wide" id="note-display-guitarra"></div>
+      <div class="question-text" id="question-text-guitarra"></div>
+      <div class="options" id="options-guitarra"></div>
+    </div>
+
+    <div class="feedback-zone" id="feedback-guitarra" aria-live="polite"></div>
   </section>
 
   <!-- ============ RESULTADO (compartido) ============ -->
@@ -445,6 +528,64 @@ function pintarStats(nombre, stats){
   $('stat-' + nombre + '-precision').textContent = stats.respondidas > 0
     ? Math.round(stats.aciertos / stats.respondidas * 100) + '%'
     : '—';
+}
+
+/* ---- Repaso inteligente ----
+   Cada cosa que practicas (una escala, un intervalo, una posición en la guitarra)
+   tiene un "peso". Fallar lo duplica (hasta 8); acertar lo reduce (hasta 0.25).
+   Al armar una sesión, lo de más peso tiene más probabilidad de salir. */
+const REPASO_CLAVE = 'repaso-v1';
+const repasoDatos = cargar(REPASO_CLAVE, {});
+
+function pesoDe(id){ return repasoDatos[id] ? repasoDatos[id].peso : 1; }
+
+function registrarRepaso(id, etiqueta, acerto){
+  const r = repasoDatos[id] || { peso:1, vistas:0, fallos:0 };
+  r.vistas += 1;
+  if(acerto) r.peso = Math.max(0.25, r.peso * 0.6);
+  else { r.peso = Math.min(8, r.peso * 2); r.fallos += 1; }
+  r.et = etiqueta;
+  repasoDatos[id] = r;
+  guardar(REPASO_CLAVE, repasoDatos);
+}
+
+// Elige "cantidad" elementos al azar, sin repetir, favoreciendo los de más peso.
+// Si hay menos elementos que los pedidos, vuelve a empezar con todos.
+function muestreoPonderado(items, cantidad, idDe){
+  const resultado = [];
+  if(items.length === 0) return resultado;
+  let pool = [];
+  while(resultado.length < cantidad){
+    if(pool.length === 0) pool = items.slice();
+    const pesos = pool.map(it => pesoDe(idDe(it)));
+    let tiro = Math.random() * pesos.reduce((a, b) => a + b, 0);
+    let k = 0;
+    while(k < pool.length - 1 && tiro >= pesos[k]){ tiro -= pesos[k]; k++; }
+    resultado.push(pool[k]);
+    pool.splice(k, 1);
+  }
+  return resultado;
+}
+
+// Muestra los puntos más débiles de un ejercicio (los ids que empiezan con "prefijo")
+function pintarRepaso(idElemento, prefijo){
+  const cont = $(idElemento);
+  const lista = prefijo === null ? [] : Object.keys(repasoDatos)
+    .filter(k => k.startsWith(prefijo) && repasoDatos[k].peso >= 1.5)
+    .sort((a, b) => repasoDatos[b].peso - repasoDatos[a].peso)
+    .slice(0, 4)
+    .map(k => repasoDatos[k].et);
+
+  if(lista.length === 0){ cont.style.display = 'none'; return; }
+  cont.style.display = '';
+  cont.innerHTML = '';
+  const titulo = document.createElement('div');
+  titulo.className = 'repaso-titulo';
+  titulo.textContent = 'Para repasar';
+  const detalle = document.createElement('div');
+  detalle.className = 'repaso-lista';
+  detalle.textContent = lista.join(' · ');
+  cont.append(titulo, detalle);
 }
 
 function mensajeFinal(proporcion){
@@ -570,6 +711,7 @@ function pintarEjercicios(){
       ejercicioElegido = ej.clave;
       pintarEjercicios();
       pintarStats('escalas', statsPorEjercicio[ejercicioElegido]);
+      pintarRepaso('repaso-escalas', 'esc:' + ejercicioElegido + ':');
     });
     cont.appendChild(boton);
   });
@@ -626,13 +768,16 @@ function pintarSelectorEscalas(){
 
 // Arma las rondas de la sesión.
 // Si elegiste escalas, salen solo esas, una vez cada una, en orden revuelto.
-// Si no elegiste ninguna, salen 7 al azar de todas las del nivel.
+// Si no elegiste ninguna, salen 7 de todas las del nivel, y las que más fallas salen más.
 function armarSesion(todas){
   if(escalasElegidas.size > 0){
     return revolver(todas.filter(e => escalasElegidas.has(claveEscala(e))));
   }
-  return revolver(todas).slice(0, TOTAL_ESCALAS);
+  return muestreoPonderado(todas, TOTAL_ESCALAS, e => idRepasoEscala(ejercicioElegido, e));
 }
+
+// Cada ejercicio de escalas guarda su repaso por separado
+function idRepasoEscala(ejercicio, escala){ return 'esc:' + ejercicio + ':' + claveEscala(escala); }
 
 function abrirEscalas(){
   juegoActual = 'escalas';
@@ -640,6 +785,7 @@ function abrirEscalas(){
   pintarNiveles();
   pintarSelectorEscalas();
   pintarStats('escalas', statsPorEjercicio[ejercicioElegido]);
+  pintarRepaso('repaso-escalas', 'esc:' + ejercicioElegido + ':');
   mostrarPantalla('config-escalas');
 }
 
@@ -822,6 +968,7 @@ function terminarEscala(){
   if(perfecta) s.puntaje += 1;
   registrar(stats, perfecta);
   guardar(ejercicio.guardado, stats);
+  registrarRepaso(idRepasoEscala(s.ejercicio, escala), formatoNota(escala.raiz) + ' ' + escala.tipo, perfecta);
 
   document.querySelectorAll('#board .note-btn').forEach(b => b.disabled = true);
   $('progress-escalas').style.width = Math.round((s.indice + 1) / s.escalas.length * 100) + '%';
@@ -877,13 +1024,134 @@ function siguienteEscala(){
 }
 
 /* =========================================================
+   MOTOR DE PREGUNTAS (lo comparten intervalos y guitarra)
+   Cada pregunta trae: encabezado y texto (HTML), opciones,
+   la respuesta correcta y, si quiere, textoError, detalle y
+   repasoId/repasoEt para el repaso inteligente.
+   ========================================================= */
+
+let sesion = null;
+
+// Dibuja una lista de tarjetas; al tocar una se llama a alElegir(clave)
+function pintarTarjetas(idContenedor, lista, claveActual, alElegir){
+  const cont = $(idContenedor);
+  cont.innerHTML = '';
+  lista.forEach(item => {
+    const boton = document.createElement('button');
+    boton.className = 'choice' + (item.clave === claveActual ? ' selected' : '');
+    boton.innerHTML =
+      '<div class="choice-name">' + item.nombre + '</div>' +
+      '<div class="choice-desc">' + item.desc + '</div>';
+    boton.addEventListener('click', () => alElegir(item.clave));
+    cont.appendChild(boton);
+  });
+}
+
+// juego: 'intervalos' o 'guitarra' (decide la pantalla y los ids que se usan)
+function empezarQuiz(juego, ejercicio, stats, preguntas){
+  juegoActual = juego;
+  sesion = { juego, ejercicio, stats, preguntas, indice:0, puntaje:0, respondida:false, elegida:null };
+  mostrarPantalla(juego);
+  pintarPregunta();
+}
+
+function pintarPregunta(){
+  const suf = sesion.juego;
+  const p = sesion.preguntas[sesion.indice];
+  const total = sesion.preguntas.length;
+
+  const avance = (sesion.indice + (sesion.respondida ? 1 : 0)) / total;
+  $('progress-' + suf).style.width = Math.round(avance * 100) + '%';
+  $('count-' + suf).textContent = (sesion.indice + 1) + '/' + total;
+
+  $('note-display-' + suf).innerHTML = p.encabezado;
+  $('question-text-' + suf).innerHTML = p.texto;
+
+  const cont = $('options-' + suf);
+  cont.className = 'options' + (p.claseOpciones ? ' ' + p.claseOpciones : '');
+  cont.innerHTML = '';
+  p.opciones.forEach(op => {
+    const boton = document.createElement('button');
+    boton.className = 'option' + (p.claseBoton ? ' ' + p.claseBoton : '');
+    boton.textContent = op.texto;
+    boton.disabled = sesion.respondida;
+    if(sesion.respondida){
+      if(op.valor === p.correcta)          boton.classList.add('correct');
+      else if(op.valor === sesion.elegida) boton.classList.add('wrong');
+      else                                 boton.classList.add('dim');
+    } else {
+      boton.addEventListener('click', () => responder(op.valor));
+    }
+    cont.appendChild(boton);
+  });
+
+  pintarRetroQuiz();
+}
+
+function responder(valor){
+  if(sesion.respondida) return;
+  const p = sesion.preguntas[sesion.indice];
+  const acerto = valor === p.correcta;
+
+  registrar(sesion.stats, acerto);
+  guardar(sesion.ejercicio.guardado, sesion.stats);
+  if(p.repasoId) registrarRepaso(p.repasoId, p.repasoEt, acerto);
+  if(acerto) sesion.puntaje += 1;
+
+  sesion.respondida = true;
+  sesion.elegida = valor;
+  pintarPregunta();
+}
+
+function pintarRetroQuiz(){
+  const zona = $('feedback-' + sesion.juego);
+  zona.innerHTML = '';
+  if(!sesion.respondida) return;
+
+  const p = sesion.preguntas[sesion.indice];
+  const acerto = sesion.elegida === p.correcta;
+  const esUltima = sesion.indice + 1 >= sesion.preguntas.length;
+
+  const texto = document.createElement('div');
+  texto.className = 'feedback-text ' + (acerto ? 'ok' : 'no');
+  texto.textContent = acerto ? '¡Correcto!' : p.textoError;
+  zona.append(texto);
+
+  if(p.detalle){
+    const detalle = document.createElement('div');
+    detalle.className = 'feedback-detail';
+    detalle.innerHTML = p.detalle;
+    zona.append(detalle);
+  }
+
+  const boton = document.createElement('button');
+  boton.className = 'btn btn-primary';
+  boton.textContent = esUltima ? 'Ver resultado' : 'Siguiente';
+  boton.addEventListener('click', siguientePregunta);
+  zona.append(boton);
+}
+
+function siguientePregunta(){
+  if(sesion.indice + 1 >= sesion.preguntas.length){
+    sesion.stats.sesiones += 1;
+    guardar(sesion.ejercicio.guardado, sesion.stats);
+    mostrarResultado(sesion.puntaje, sesion.preguntas.length, sesion.ejercicio.etiqueta);
+  } else {
+    sesion.indice += 1;
+    sesion.respondida = false;
+    sesion.elegida = null;
+    pintarPregunta();
+  }
+}
+
+/* =========================================================
    JUEGO 2: INTERVALOS
    ========================================================= */
 
-const ESCALA = ['Do','Re','Mi','Fa','Sol','La','Si'];
+const ESCALA = LETRAS;
 const TOTAL_PREGUNTAS = 7;
 
-// Cada intervalo avanza un número fijo de pasos dentro de la escala.
+// Intervalos "por número": cada uno avanza un número fijo de pasos dentro de la escala.
 const INTERVALOS = [
   { clave:'2da', ordinal:'2ª', nombre:'Segunda', minuscula:'segunda', pasos:1 },
   { clave:'3ra', ordinal:'3ª', nombre:'Tercera', minuscula:'tercera', pasos:2 },
@@ -893,49 +1161,88 @@ const INTERVALOS = [
   { clave:'7ma', ordinal:'7ª', nombre:'Séptima', minuscula:'séptima', pasos:6 },
 ];
 
-// En ambos modos aparecen las 7 notas una vez: solo cambia el orden.
+// Intervalos "con cualidad": el número (num) dice la letra de destino y
+// los semitonos (semis) dicen la distancia exacta, de ahí sale la alteración.
+const INTERVALOS_Q = [
+  { clave:'2m', num:2, semis:1,  nombre:'2ª menor' },
+  { clave:'2M', num:2, semis:2,  nombre:'2ª mayor' },
+  { clave:'3m', num:3, semis:3,  nombre:'3ª menor' },
+  { clave:'3M', num:3, semis:4,  nombre:'3ª mayor' },
+  { clave:'4J', num:4, semis:5,  nombre:'4ª justa' },
+  { clave:'4A', num:4, semis:6,  nombre:'4ª aumentada' },
+  { clave:'5d', num:5, semis:6,  nombre:'5ª disminuida' },
+  { clave:'5J', num:5, semis:7,  nombre:'5ª justa' },
+  { clave:'6m', num:6, semis:8,  nombre:'6ª menor' },
+  { clave:'6M', num:6, semis:9,  nombre:'6ª mayor' },
+  { clave:'7m', num:7, semis:10, nombre:'7ª menor' },
+  { clave:'7M', num:7, semis:11, nombre:'7ª mayor' },
+];
+
+// Semitonos de cada nota natural desde Do
+const SEMI_LETRA = [0, 2, 4, 5, 7, 9, 11];
+
+// Una nota es { letra: 0-6, acc: -1 | 0 | 1 }. "Fa#" -> { letra:3, acc:1 }
+function parseNota(nombre){
+  const base = nombre.replace(/[#b]$/, '');
+  const resto = nombre.slice(base.length);
+  return { letra: LETRAS.indexOf(base), acc: resto === '#' ? 1 : resto === 'b' ? -1 : 0 };
+}
+function nombreNota(n){ return LETRAS[n.letra] + (n.acc === 1 ? '#' : n.acc === -1 ? 'b' : ''); }
+function semitono(n){ return (SEMI_LETRA[n.letra] + n.acc + 12) % 12; }
+
+// Sube un intervalo desde una nota: la letra la da el número, la alteración los semitonos.
+function subirIntervalo(raiz, def){
+  const letra = (raiz.letra + def.num - 1) % 7;
+  const objetivo = (semitono(raiz) + def.semis) % 12;
+  let acc = objetivo - SEMI_LETRA[letra];
+  if(acc > 6) acc -= 12;
+  if(acc < -5) acc += 12;
+  return { letra, acc };
+}
+
+// Notas de partida para los ejercicios con cualidad (se descartan las que
+// obligarían a usar doble sostenido o doble bemol en la respuesta)
+const RAICES_Q = ['Do','Reb','Re','Mib','Mi','Fa','Fa#','Sol','Lab','La','Sib','Si'].map(parseNota);
+
+// Los ejercicios del juego de intervalos. "armar" crea las preguntas de la sesión;
+// "repaso" es el prefijo con que se guardan sus puntos débiles (null = sin repaso).
+const EJERCICIOS_INT = [
+  { clave:'encontrar',          nombre:'Encontrar la nota',        desc:'Te doy el intervalo, tú la nota',      guardado:'intervalos-stats-v1',          etiqueta:'Ciclo completado',          repaso:null,  armar:preguntasEncontrar },
+  { clave:'identificar',        nombre:'Identificar',              desc:'Te doy dos notas, tú el intervalo',    guardado:'identificar-stats-v1',         etiqueta:'Intervalos identificados',  repaso:'id:', armar:preguntasIdentificar },
+  { clave:'cualidad-nota',      nombre:'Con cualidad: nota',       desc:'Mayor, menor, justa… busca la nota',   guardado:'cualidad-nota-stats-v1',       etiqueta:'Notas encontradas',         repaso:'cn:', armar:() => preguntasCualidad('nota') },
+  { clave:'cualidad-intervalo', nombre:'Con cualidad: intervalo',  desc:'Dos notas: di el intervalo exacto',    guardado:'cualidad-intervalo-stats-v1',  etiqueta:'Intervalos identificados',  repaso:'ci:', armar:() => preguntasCualidad('intervalo') },
+];
+
+// En ambos modos de "encontrar" aparecen las 7 notas una vez: solo cambia el orden.
 const MODOS = [
   { clave:'orden',     nombre:'En orden',  desc:'Encadenado desde Do' },
   { clave:'aleatorio', nombre:'Aleatorio', desc:'Octava completa, revuelta' },
 ];
 
-// Dos ejercicios:
-// "encontrar" te da una nota y un intervalo, y tú buscas la otra nota;
-// "identificar" te da dos notas, y tú dices qué intervalo hay entre ellas.
-const EJERCICIOS_INT = [
-  { clave:'encontrar',   nombre:'Encontrar la nota', desc:'Te doy el intervalo, tú la nota', guardado:'intervalos-stats-v1',  etiqueta:'Ciclo completado' },
-  { clave:'identificar', nombre:'Identificar',       desc:'Te doy dos notas, tú el intervalo', guardado:'identificar-stats-v1', etiqueta:'Intervalos identificados' },
-];
-
 let ejercicioIntElegido = 'encontrar';
 let intervaloElegido = '2da';
 let modoElegido = 'orden';
-let sesion = null;
+let cualidadesElegidas = new Set();   // vacío = todos
 
 const statsPorEjercicioInt = {};
 EJERCICIOS_INT.forEach(e => statsPorEjercicioInt[e.clave] = cargar(e.guardado, STATS_BASE));
 
+function ejercicioIntActual(){
+  return EJERCICIOS_INT.find(e => e.clave === ejercicioIntElegido) || EJERCICIOS_INT[0];
+}
+
 function pintarEjerciciosInt(){
-  const cont = $('int-exercise-grid');
-  cont.innerHTML = '';
-  EJERCICIOS_INT.forEach(ej => {
-    const boton = document.createElement('button');
-    boton.className = 'choice' + (ej.clave === ejercicioIntElegido ? ' selected' : '');
-    boton.innerHTML =
-      '<div class="choice-name">' + ej.nombre + '</div>' +
-      '<div class="choice-desc">' + ej.desc + '</div>';
-    boton.addEventListener('click', () => {
-      ejercicioIntElegido = ej.clave;
-      pintarEjerciciosInt();
-    });
-    cont.appendChild(boton);
+  pintarTarjetas('int-exercise-grid', EJERCICIOS_INT, ejercicioIntElegido, clave => {
+    ejercicioIntElegido = clave;
+    pintarEjerciciosInt();
   });
 
-  // Solo "encontrar" necesita elegir intervalo y orden
-  const esEncontrar = ejercicioIntElegido === 'encontrar';
-  $('opciones-encontrar').style.display = esEncontrar ? '' : 'none';
-  $('opciones-identificar').style.display = esEncontrar ? 'none' : '';
-  pintarStats('intervalos', statsPorEjercicioInt[ejercicioIntElegido]);
+  const ej = ejercicioIntActual();
+  $('opciones-encontrar').style.display   = ej.clave === 'encontrar'   ? '' : 'none';
+  $('opciones-identificar').style.display = ej.clave === 'identificar' ? '' : 'none';
+  $('opciones-cualidad').style.display    = ej.clave.startsWith('cualidad') ? '' : 'none';
+  pintarStats('intervalos', statsPorEjercicioInt[ej.clave]);
+  pintarRepaso('repaso-intervalos', ej.repaso);
 }
 
 function pintarIntervalos(){
@@ -954,17 +1261,31 @@ function pintarIntervalos(){
 }
 
 function pintarModos(){
-  const cont = $('mode-grid');
+  pintarTarjetas('mode-grid', MODOS, modoElegido, clave => { modoElegido = clave; pintarModos(); });
+}
+
+// Selector de intervalos con cualidad (tocar uno lo elige, otra vez lo quita)
+function pintarCualidades(){
+  const cont = $('chips-cualidad');
   cont.innerHTML = '';
-  MODOS.forEach(def => {
+  INTERVALOS_Q.forEach(def => {
     const boton = document.createElement('button');
-    boton.className = 'choice' + (def.clave === modoElegido ? ' selected' : '');
-    boton.innerHTML =
-      '<div class="choice-name">' + def.nombre + '</div>' +
-      '<div class="choice-desc">' + def.desc + '</div>';
-    boton.addEventListener('click', () => { modoElegido = def.clave; pintarModos(); });
+    boton.className = 'chip' + (cualidadesElegidas.has(def.clave) ? ' selected' : '');
+    boton.textContent = def.clave;
+    boton.title = def.nombre;
+    boton.setAttribute('aria-label', def.nombre);
+    boton.addEventListener('click', () => {
+      if(cualidadesElegidas.has(def.clave)) cualidadesElegidas.delete(def.clave);
+      else cualidadesElegidas.add(def.clave);
+      pintarCualidades();
+    });
     cont.appendChild(boton);
   });
+
+  const n = cualidadesElegidas.size;
+  $('cualidad-helper').textContent = n === 0
+    ? 'Toca uno o varios. Si no eliges ninguno, salen los 12.'
+    : (n === 1 ? '1 intervalo elegido.' : n + ' intervalos elegidos.');
 }
 
 function abrirIntervalos(){
@@ -972,7 +1293,13 @@ function abrirIntervalos(){
   pintarEjerciciosInt();
   pintarIntervalos();
   pintarModos();
+  pintarCualidades();
   mostrarPantalla('config-intervalos');
+}
+
+function empezarIntervalos(){
+  const ej = ejercicioIntActual();
+  empezarQuiz('intervalos', ej, statsPorEjercicioInt[ej.clave], ej.armar());
 }
 
 // Los índices de las 7 notas raíz, en el orden que toque según el modo
@@ -998,24 +1325,36 @@ function recorrido(indiceRaiz, pasos){
   return notas;
 }
 
+// HTML de las dos notas con una flecha en medio
+function parDeNotas(a, b){
+  return '<div class="note-pair">' +
+      '<div class="root-note">' + formatoNota(a) + '</div>' +
+      '<div class="note-arrow">→</div>' +
+      '<div class="root-note">' + formatoNota(b) + '</div>' +
+    '</div>' +
+    '<div class="root-label">intervalo ascendente</div>';
+}
+
 function preguntasEncontrar(){
   const def = INTERVALOS.find(d => d.clave === intervaloElegido) || INTERVALOS[0];
   return construirRaices(def).map(indice => {
+    const raiz = ESCALA[indice];
     const correcta = ESCALA[(indice + def.pasos) % 7];
     const distractores = revolver(ESCALA.filter(n => n !== correcta)).slice(0, 3);
     return {
-      tipo: 'encontrar',
-      raiz: ESCALA[indice],
-      def,
+      encabezado: '<div class="root-note">' + raiz + '</div><div class="root-label">nota de referencia</div>',
+      texto: '¿Cuál es la <em>' + def.minuscula + '</em> de ' + raiz + '?',
       correcta,
+      textoError: 'Era ' + correcta,
       opciones: revolver([correcta, ...distractores]).map(n => ({ valor:n, texto:n }))
     };
   });
 }
 
 function preguntasIdentificar(){
-  // Los 6 intervalos una vez cada uno, más uno extra al azar: 7 preguntas
-  const pasos = revolver([1, 2, 3, 4, 5, 6, 1 + Math.floor(Math.random() * 6)]);
+  // Los 6 intervalos una vez cada uno, más uno extra: el que más has fallado
+  const extra = muestreoPonderado(INTERVALOS, 1, d => 'id:' + d.clave)[0].pasos;
+  const pasos = revolver([1, 2, 3, 4, 5, 6, extra]);
   let anterior = null;
 
   return pasos.map(p => {
@@ -1026,139 +1365,245 @@ function preguntasIdentificar(){
     anterior = { indice, pasos:p };
 
     const def = INTERVALOS.find(d => d.pasos === p);
+    const raiz = ESCALA[indice];
+    const destino = ESCALA[(indice + p) % 7];
+    const notas = recorrido(indice, p);
     return {
-      tipo: 'identificar',
-      raiz: ESCALA[indice],
-      destino: ESCALA[(indice + p) % 7],
-      def,
-      recorrido: recorrido(indice, p),
+      encabezado: parDeNotas(raiz, destino),
+      texto: '¿Qué intervalo hay de ' + raiz + ' a ' + destino + '?',
       correcta: def.clave,
+      textoError: 'Era una ' + def.minuscula,
+      detalle: '<em>' + notas.join(' · ') + '</em> — ' + notas.length + ' notas',
+      repasoId: 'id:' + def.clave,
+      repasoEt: def.nombre,
+      claseOpciones: 'seis',
+      claseBoton: 'sm',
       // Siempre las 6 opciones y en el mismo orden, para no adivinar por descarte
       opciones: INTERVALOS.map(d => ({ valor:d.clave, texto:d.nombre }))
     };
   });
 }
 
-function empezarIntervalos(){
-  juegoActual = 'intervalos';
-  sesion = {
-    ejercicio: ejercicioIntElegido,
-    preguntas: ejercicioIntElegido === 'identificar' ? preguntasIdentificar() : preguntasEncontrar(),
-    indice: 0,
-    puntaje: 0,
-    respondida: false,
-    elegida: null
-  };
-  mostrarPantalla('intervalos');
-  pintarPregunta();
+// 3 notas equivocadas parecidas a la correcta: la misma letra con otra alteración
+// y las letras vecinas. Nunca la misma altura (Fa♯ y Sol♭ serían ambas correctas).
+function opcionesNota(correcta){
+  const semi = semitono(correcta);
+  const misma = [], vecinas = [];
+  [correcta.letra, (correcta.letra + 1) % 7, (correcta.letra + 6) % 7].forEach((letra, i) => {
+    [-1, 0, 1].forEach(acc => {
+      const n = { letra, acc };
+      if(semitono(n) === semi) return;
+      (i === 0 ? misma : vecinas).push(n);
+    });
+  });
+  const elegidas = [revolver(misma)[0], ...revolver(vecinas).slice(0, 2)];
+  return revolver([correcta, ...elegidas]).map(n => ({ valor:nombreNota(n), texto:formatoNota(nombreNota(n)) }));
 }
 
-function pintarPregunta(){
-  const p = sesion.preguntas[sesion.indice];
-  const total = sesion.preguntas.length;
+// 6 intervalos para elegir: el correcto y los 5 más parecidos
+// (mismo número con otra cualidad, o números cercanos)
+function opcionesIntervalo(def){
+  const parecidos = INTERVALOS_Q.filter(d => d !== def)
+    .map(d => ({ d, dist: Math.abs(d.num - def.num) * 2 + Math.abs(d.semis - def.semis) + Math.random() * 0.9 }))
+    .sort((a, b) => a.dist - b.dist)
+    .slice(0, 5)
+    .map(x => x.d);
+  return [def, ...parecidos]
+    .sort((a, b) => a.semis - b.semis || a.num - b.num)
+    .map(d => ({ valor:d.clave, texto:d.nombre }));
+}
 
-  const avance = (sesion.indice + (sesion.respondida ? 1 : 0)) / total;
-  $('progress-intervalos').style.width = Math.round(avance * 100) + '%';
-  $('count-intervalos').textContent = (sesion.indice + 1) + '/' + total;
+// modo "nota": te doy la nota y el intervalo, tú dices la nota
+// modo "intervalo": te doy las dos notas, tú dices el intervalo
+function preguntasCualidad(modo){
+  const elegidos = cualidadesElegidas.size > 0
+    ? INTERVALOS_Q.filter(d => cualidadesElegidas.has(d.clave))
+    : INTERVALOS_Q;
+  const prefijo = modo === 'nota' ? 'cn:' : 'ci:';
+  const defs = muestreoPonderado(elegidos, TOTAL_PREGUNTAS, d => prefijo + d.clave);
+  let anterior = null;
 
-  // Las notas que se muestran arriba
-  if(p.tipo === 'identificar'){
-    $('note-display').innerHTML =
-      '<div class="note-pair">' +
-        '<div class="root-note">' + p.raiz + '</div>' +
-        '<div class="note-arrow">→</div>' +
-        '<div class="root-note">' + p.destino + '</div>' +
-      '</div>' +
-      '<div class="root-label">intervalo ascendente</div>';
-    $('question-text').innerHTML = '¿Qué intervalo hay de ' + p.raiz + ' a ' + p.destino + '?';
-  } else {
-    $('note-display').innerHTML =
-      '<div class="root-note">' + p.raiz + '</div>' +
-      '<div class="root-label">nota de referencia</div>';
-    $('question-text').innerHTML = '¿Cuál es la <em>' + p.def.minuscula + '</em> de ' + p.raiz + '?';
-  }
+  return defs.map(def => {
+    // Una raíz distinta a la anterior, que no obligue a doble alteración
+    const raiz = revolver(RAICES_Q).find(r => nombreNota(r) !== anterior && Math.abs(subirIntervalo(r, def).acc) <= 1) || RAICES_Q[0];
+    anterior = nombreNota(raiz);
+    const destino = subirIntervalo(raiz, def);
+    const rN = nombreNota(raiz), dN = nombreNota(destino);
+    const detalle = '<em>' + formatoNota(rN) + ' → ' + formatoNota(dN) + '</em> · ' +
+      def.semis + (def.semis === 1 ? ' semitono' : ' semitonos');
 
-  // Las opciones
-  const cont = $('options');
-  cont.className = 'options' + (p.tipo === 'identificar' ? ' seis' : '');
-  cont.innerHTML = '';
-  p.opciones.forEach(op => {
-    const boton = document.createElement('button');
-    boton.className = 'option' + (p.tipo === 'identificar' ? ' sm' : '');
-    boton.textContent = op.texto;
-    boton.disabled = sesion.respondida;
-    if(sesion.respondida){
-      if(op.valor === p.correcta)          boton.classList.add('correct');
-      else if(op.valor === sesion.elegida) boton.classList.add('wrong');
-      else                                 boton.classList.add('dim');
-    } else {
-      boton.addEventListener('click', () => responder(op.valor));
+    const base = { detalle, repasoId: prefijo + def.clave, repasoEt: def.nombre };
+    if(modo === 'nota'){
+      return Object.assign(base, {
+        encabezado: '<div class="root-note">' + formatoNota(rN) + '</div><div class="root-label">nota de referencia</div>',
+        texto: '¿Cuál es la <em>' + def.nombre + '</em> de ' + formatoNota(rN) + '?',
+        correcta: dN,
+        textoError: 'Era ' + formatoNota(dN),
+        opciones: opcionesNota(destino)
+      });
     }
+    return Object.assign(base, {
+      encabezado: parDeNotas(rN, dN),
+      texto: '¿Qué intervalo hay de ' + formatoNota(rN) + ' a ' + formatoNota(dN) + '?',
+      correcta: def.clave,
+      textoError: 'Era una ' + def.nombre,
+      claseOpciones: 'seis',
+      claseBoton: 'sm xs',
+      opciones: opcionesIntervalo(def)
+    });
+  });
+}
+
+/* =========================================================
+   JUEGO 3: GUITARRA
+   Una nota marcada en el mástil; eliges entre 4 opciones.
+   ========================================================= */
+
+// De la 1ª cuerda (la aguda, arriba en el dibujo) a la 6ª (la grave).
+// pc = altura de la cuerda al aire, en semitonos desde Do.
+const CUERDAS = [
+  { num:1, nombre:'Mi',  pc:4  },
+  { num:2, nombre:'Si',  pc:11 },
+  { num:3, nombre:'Sol', pc:7  },
+  { num:4, nombre:'Re',  pc:2  },
+  { num:5, nombre:'La',  pc:9  },
+  { num:6, nombre:'Mi',  pc:4  },
+];
+const NOMBRES_PC = ['Do','Do#/Reb','Re','Re#/Mib','Mi','Fa','Fa#/Solb','Sol','Sol#/Lab','La','La#/Sib','Si'];
+const PC_NATURALES = [0, 2, 4, 5, 7, 9, 11];
+const PC_TODAS = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11];
+
+const NOTAS_GUI = [
+  { clave:'naturales', nombre:'Naturales',        desc:'Do, Re, Mi, Fa, Sol, La, Si' },
+  { clave:'todas',     nombre:'Con alteraciones', desc:'Incluye ♯ y ♭ (Do♯ / Re♭…)' },
+];
+const ZONAS_GUI = [
+  { clave:'5',  nombre:'Primeros trastes', desc:'Del 0 (al aire) al 5' },
+  { clave:'12', nombre:'Todo el mástil',   desc:'Del 0 (al aire) al 12' },
+];
+const GUITARRA = { guardado:'guitarra-stats-v1', etiqueta:'Notas encontradas' };
+const TOTAL_GUITARRA = 10;
+
+let guitarraCuerdas = new Set();   // vacío = todas
+let guitarraNotas = 'naturales';
+let guitarraZona = '12';
+const statsGuitarra = cargar(GUITARRA.guardado, STATS_BASE);
+
+// "Fa#/Solb" -> "Fa♯ / Sol♭"
+function nombrePC(pc){
+  return NOMBRES_PC[pc].split('/').map(formatoNota).join(' / ');
+}
+
+function textoTraste(traste){ return traste === 0 ? 'al aire' : 'traste ' + traste; }
+
+function pintarConfigGuitarra(){
+  pintarTarjetas('gui-notas-grid', NOTAS_GUI, guitarraNotas, clave => { guitarraNotas = clave; pintarConfigGuitarra(); });
+  pintarTarjetas('gui-zona-grid', ZONAS_GUI, guitarraZona, clave => { guitarraZona = clave; pintarConfigGuitarra(); });
+
+  const cont = $('gui-chips');
+  cont.innerHTML = '';
+  CUERDAS.forEach(c => {
+    const boton = document.createElement('button');
+    boton.className = 'chip' + (guitarraCuerdas.has(c.num) ? ' selected' : '');
+    boton.textContent = c.num + 'ª · ' + c.nombre;
+    boton.addEventListener('click', () => {
+      if(guitarraCuerdas.has(c.num)) guitarraCuerdas.delete(c.num);
+      else guitarraCuerdas.add(c.num);
+      pintarConfigGuitarra();
+    });
     cont.appendChild(boton);
   });
 
-  pintarRetroIntervalos();
+  const n = guitarraCuerdas.size;
+  $('gui-helper').textContent = n === 0
+    ? 'Toca una o varias. Si no eliges ninguna, salen las 6.'
+    : (n === 1 ? '1 cuerda elegida.' : n + ' cuerdas elegidas.');
+
+  pintarStats('guitarra', statsGuitarra);
+  pintarRepaso('repaso-guitarra', 'gui:');
 }
 
-function responder(valor){
-  if(sesion.respondida) return;
-  const p = sesion.preguntas[sesion.indice];
-  const acerto = valor === p.correcta;
-  const ejercicio = EJERCICIOS_INT.find(e => e.clave === sesion.ejercicio);
-  const stats = statsPorEjercicioInt[sesion.ejercicio];
-
-  registrar(stats, acerto);
-  guardar(ejercicio.guardado, stats);
-  if(acerto) sesion.puntaje += 1;
-
-  sesion.respondida = true;
-  sesion.elegida = valor;
-  pintarPregunta();
+function abrirGuitarra(){
+  juegoActual = 'guitarra';
+  pintarConfigGuitarra();
+  mostrarPantalla('config-guitarra');
 }
 
-function pintarRetroIntervalos(){
-  const zona = $('feedback-intervalos');
-  zona.innerHTML = '';
-  if(!sesion.respondida) return;
+function empezarGuitarra(){
+  empezarQuiz('guitarra', GUITARRA, statsGuitarra, preguntasGuitarra());
+}
 
-  const p = sesion.preguntas[sesion.indice];
-  const acerto = sesion.elegida === p.correcta;
-  const esUltima = sesion.indice + 1 >= sesion.preguntas.length;
+// Todas las posiciones (cuerda + traste) que cumplen la configuración
+function posicionesGuitarra(){
+  const cuerdas = guitarraCuerdas.size > 0 ? CUERDAS.filter(c => guitarraCuerdas.has(c.num)) : CUERDAS;
+  const lista = [];
+  cuerdas.forEach(cuerda => {
+    for(let traste = 0; traste <= Number(guitarraZona); traste++){
+      const pc = (cuerda.pc + traste) % 12;
+      if(guitarraNotas === 'naturales' && !PC_NATURALES.includes(pc)) continue;
+      lista.push({ cuerda, traste, pc });
+    }
+  });
+  return lista;
+}
 
-  const texto = document.createElement('div');
-  texto.className = 'feedback-text ' + (acerto ? 'ok' : 'no');
-  if(acerto) texto.textContent = '¡Correcto!';
-  else texto.textContent = p.tipo === 'identificar' ? 'Era una ' + p.def.minuscula : 'Era ' + p.correcta;
-  zona.append(texto);
+function preguntasGuitarra(){
+  const posiciones = posicionesGuitarra();
+  const permitidas = guitarraNotas === 'naturales' ? PC_NATURALES : PC_TODAS;
+  const cantidad = Math.min(TOTAL_GUITARRA, posiciones.length);
 
-  // En "identificar" mostramos el conteo: Re, Mi, Fa = 3 notas = tercera
-  if(p.tipo === 'identificar'){
-    const detalle = document.createElement('div');
-    detalle.className = 'feedback-detail';
-    detalle.innerHTML = '<em>' + p.recorrido.join(' · ') + '</em> — ' + p.recorrido.length + ' notas';
-    zona.append(detalle);
+  return muestreoPonderado(posiciones, cantidad, pos => 'gui:' + pos.cuerda.num + ':' + pos.traste).map(pos => {
+    const distractores = revolver(permitidas.filter(pc => pc !== pos.pc)).slice(0, 3);
+    return {
+      encabezado: dibujarMastil(pos.cuerda.num, pos.traste),
+      texto: '¿Qué nota es?',
+      correcta: String(pos.pc),
+      textoError: 'Era ' + nombrePC(pos.pc),
+      detalle: '<em>' + pos.cuerda.num + 'ª cuerda (' + pos.cuerda.nombre + ')</em> · ' + textoTraste(pos.traste),
+      repasoId: 'gui:' + pos.cuerda.num + ':' + pos.traste,
+      repasoEt: pos.cuerda.num + 'ª cuerda, ' + textoTraste(pos.traste),
+      claseBoton: 'sm',
+      opciones: revolver([pos.pc, ...distractores]).map(pc => ({ valor:String(pc), texto:nombrePC(pc) }))
+    };
+  });
+}
+
+// Dibuja el mástil en SVG con un círculo en la cuerda y el traste de la pregunta.
+// La 1ª cuerda va arriba, el traste 0 (cuerda al aire) a la izquierda de la cejilla.
+function dibujarMastil(cuerdaNum, traste){
+  const N = Number(guitarraZona);
+  const x0 = 44, largo = 336, ancho = largo / N;
+  const ys = [26, 54, 82, 110, 138, 166];
+  const grosor = [1.2, 1.5, 1.9, 2.3, 2.8, 3.3];
+  const centro = k => x0 + (k - 0.5) * ancho;
+  const punto = (cx, cy, r, clase) => '<circle class="' + clase + '" cx="' + cx + '" cy="' + cy + '" r="' + r + '"/>';
+
+  let s = '<svg class="mastil" viewBox="0 0 400 212" role="img" aria-label="Cuerda ' + cuerdaNum + ', ' + textoTraste(traste) + '">';
+  s += '<rect class="mastil-fondo" x="' + x0 + '" y="12" width="' + largo + '" height="170" rx="4"/>';
+
+  // Marcas del mástil (3, 5, 7, 9 y doble en el 12)
+  [3, 5, 7, 9].forEach(k => { if(k <= N) s += punto(centro(k), 96, 5, 'mastil-marca'); });
+  if(N >= 12) s += punto(centro(12), 68, 5, 'mastil-marca') + punto(centro(12), 124, 5, 'mastil-marca');
+
+  // Trastes, cejilla y cuerdas
+  for(let k = 1; k <= N; k++){
+    const x = x0 + k * ancho;
+    s += '<line class="mastil-traste" x1="' + x + '" y1="12" x2="' + x + '" y2="182"/>';
+  }
+  s += '<line class="mastil-cejilla" x1="' + x0 + '" y1="11" x2="' + x0 + '" y2="183"/>';
+  ys.forEach((y, i) => {
+    s += '<line class="mastil-cuerda" stroke-width="' + grosor[i] + '" x1="' + x0 + '" y1="' + y + '" x2="' + (x0 + largo) + '" y2="' + y + '"/>';
+    s += '<text class="mastil-txt" x="8" y="' + (y + 4) + '">' + (i + 1) + '</text>';
+  });
+
+  // Números de traste, para poder contar
+  for(let k = 1; k <= N; k++){
+    s += '<text class="mastil-txt" text-anchor="middle" x="' + centro(k) + '" y="201">' + k + '</text>';
   }
 
-  const boton = document.createElement('button');
-  boton.className = 'btn btn-primary';
-  boton.textContent = esUltima ? 'Ver resultado' : 'Siguiente';
-  boton.addEventListener('click', siguientePregunta);
-  zona.append(boton);
-}
-
-function siguientePregunta(){
-  if(sesion.indice + 1 >= sesion.preguntas.length){
-    const ejercicio = EJERCICIOS_INT.find(e => e.clave === sesion.ejercicio);
-    const stats = statsPorEjercicioInt[sesion.ejercicio];
-    stats.sesiones += 1;
-    guardar(ejercicio.guardado, stats);
-    mostrarResultado(sesion.puntaje, sesion.preguntas.length, ejercicio.etiqueta);
-  } else {
-    sesion.indice += 1;
-    sesion.respondida = false;
-    sesion.elegida = null;
-    pintarPregunta();
-  }
+  // El círculo de la pregunta (al aire: a la izquierda de la cejilla)
+  s += punto(traste === 0 ? 26 : centro(traste), ys[cuerdaNum - 1], 11, 'mastil-punto');
+  return s + '</svg>';
 }
 
 /* =========================================================
@@ -1178,23 +1623,27 @@ document.querySelectorAll('[data-ir]').forEach(boton => {
     const destino = boton.dataset.ir;
     if(destino === 'config-escalas') abrirEscalas();
     else if(destino === 'config-intervalos') abrirIntervalos();
+    else if(destino === 'config-guitarra') abrirGuitarra();
     else mostrarPantalla(destino);
   });
 });
 
 $('card-escalas').addEventListener('click', abrirEscalas);
 $('card-intervalos').addEventListener('click', abrirIntervalos);
+$('card-guitarra').addEventListener('click', abrirGuitarra);
 $('btn-start-escalas').addEventListener('click', empezarEscalas);
 $('btn-start-intervalos').addEventListener('click', empezarIntervalos);
-$('btn-retry').addEventListener('click', () => {
-  if(juegoActual === 'escalas') empezarEscalas();
-  else empezarIntervalos();
-});
+$('btn-start-guitarra').addEventListener('click', empezarGuitarra);
+
+// Cada juego sabe abrir su menú y empezar una práctica
+const JUEGOS = {
+  escalas:    { abrir: abrirEscalas,    empezar: empezarEscalas },
+  intervalos: { abrir: abrirIntervalos, empezar: empezarIntervalos },
+  guitarra:   { abrir: abrirGuitarra,   empezar: empezarGuitarra },
+};
+$('btn-retry').addEventListener('click', () => JUEGOS[juegoActual].empezar());
 // "Menú" regresa al menú del juego que estabas jugando, no al inicio
-$('btn-menu').addEventListener('click', () => {
-  if(juegoActual === 'escalas') abrirEscalas();
-  else abrirIntervalos();
-});
+$('btn-menu').addEventListener('click', () => JUEGOS[juegoActual].abrir());
 </script>
 
 </body>
