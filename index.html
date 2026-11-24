@@ -143,6 +143,17 @@ body{
 .mastil-nota2{fill:var(--accent);}
 .mastil-txt{fill:var(--muted);font-family:var(--sans);font-size:11px;}
 
+ /* ---- Ear Training ---- */
+.play-btn{
+  width:104px;height:104px;border-radius:50%;
+  border:1px solid var(--accent);background:var(--accent-soft);color:var(--accent);
+  display:flex;align-items:center;justify-content:center;
+  padding:0 0 0 6px;margin:0 auto;cursor:pointer;transition:background .15s;
+}
+.play-btn:hover{background:rgba(240,138,60,.26);}
+.play-btn.sonando{animation:pulso 1.2s ease-in-out infinite;}
+#note-display-oido{display:flex;flex-direction:column;align-items:center;gap:6px;}
+
 /* ---- Accesibilidad: foco visible con teclado ---- */
 button:focus-visible{outline:2px solid var(--accent);outline-offset:2px;}
 .chip{
@@ -297,6 +308,11 @@ button:focus-visible{outline:2px solid var(--accent);outline-offset:2px;}
         <div class="game-tag">Juego 3</div>
         <div class="game-name">Guitarra</div>
         <div class="game-desc">Aprende dónde está cada nota en el mástil: te marco una cuerda y un traste.</div>
+      </button>
+      <button class="game-card" id="card-oido">
+        <div class="game-tag">Juego 4</div>
+        <div class="game-name">Ear Training</div>
+        <div class="game-desc">Escucha dos notas y reconoce el intervalo: segundas, terceras, cuartas, quintas…</div>
       </button>
     </div>
   </section>
@@ -474,6 +490,52 @@ button:focus-visible{outline:2px solid var(--accent);outline-offset:2px;}
     </div>
 
     <div class="feedback-zone" id="feedback-guitarra" aria-live="polite"></div>
+  </section>
+
+  <!-- ============ CONFIGURACIÓN: EAR TRAINING ============ -->
+  <section id="screen-config-oido" class="screen">
+    <div class="header-row">
+      <button class="icon-btn" data-ir="home" aria-label="Volver">&#8249;</button>
+      <h1 class="title title-sm">Ear Training</h1>
+    </div>
+
+    <div class="stats" id="stats-oido" style="display:none;">
+      <div class="stat"><div class="stat-value" id="stat-oido-racha">0</div><div class="stat-label">Racha actual</div></div>
+      <div class="stat"><div class="stat-value" id="stat-oido-precision">—</div><div class="stat-label">Precisión</div></div>
+    </div>
+
+    <div class="repaso" id="repaso-oido" style="display:none;"></div>
+
+    <div class="section-label">Intervalos</div>
+    <div class="level-list" id="oido-nivel-grid"></div>
+
+    <div class="section-label">Cómo suenan</div>
+    <div class="mode-grid" id="oido-modo-grid"></div>
+
+    <div class="section-label">Sonido</div>
+    <p class="helper">Sube el volumen del dispositivo. En iPhone, desactiva el modo silencio. Las notas se generan en el momento, no hay archivos de audio.</p>
+    <p class="helper" id="oido-aviso" style="display:none;color:var(--error);">Este navegador no permite generar audio.</p>
+    <button class="btn btn-ghost" id="btn-probar-sonido" style="margin-top:8px;">&#9654;&#xFE0E; Probar sonido</button>
+
+    <div class="spacer"></div>
+    <button class="btn btn-primary" id="btn-start-oido" style="margin-top:16px;">Empezar práctica</button>
+  </section>
+
+  <!-- ============ PRÁCTICA: EAR TRAINING ============ -->
+  <section id="screen-oido" class="screen">
+    <div class="practice-top">
+      <button class="icon-btn" data-ir="config-oido" aria-label="Salir">&#10005;</button>
+      <div class="progress-track"><div class="progress-fill" id="progress-oido"></div></div>
+      <span class="progress-count" id="count-oido">1/10</span>
+    </div>
+
+    <div class="question-area">
+      <div id="note-display-oido"></div>
+      <div class="question-text" id="question-text-oido"></div>
+      <div class="options" id="options-oido"></div>
+    </div>
+
+    <div class="feedback-zone" id="feedback-oido" aria-live="polite"></div>
   </section>
 
   <!-- ============ RESULTADO (compartido) ============ -->
@@ -1077,6 +1139,13 @@ function empezarQuiz(juego, ejercicio, stats, preguntas){
   sesion = { juego, ejercicio, stats, preguntas, indice:0, puntaje:0, respondida:false, elegida:null };
   mostrarPantalla(juego);
   pintarPregunta();
+  alMostrarPregunta();
+}
+
+// Algunas preguntas (el oído) hacen algo al aparecer: suena el intervalo
+function alMostrarPregunta(){
+  const p = sesion.preguntas[sesion.indice];
+  if(p.alMostrar) p.alMostrar();
 }
 
 function pintarPregunta(){
@@ -1166,6 +1235,7 @@ function siguientePregunta(){
     sesion.respondida = false;
     sesion.elegida = null;
     pintarPregunta();
+    alMostrarPregunta();
   }
 }
 
@@ -1351,13 +1421,13 @@ function recorrido(indiceRaiz, pasos){
 }
 
 // HTML de las dos notas con una flecha en medio
-function parDeNotas(a, b){
+function parDeNotas(a, b, etiqueta){
   return '<div class="note-pair">' +
       '<div class="root-note">' + formatoNota(a) + '</div>' +
       '<div class="note-arrow">→</div>' +
       '<div class="root-note">' + formatoNota(b) + '</div>' +
     '</div>' +
-    '<div class="root-label">intervalo ascendente</div>';
+    '<div class="root-label">' + (etiqueta || 'intervalo ascendente') + '</div>';
 }
 
 function preguntasEncontrar(){
@@ -1771,6 +1841,187 @@ function dibujarMastil(puntos){
 }
 
 /* =========================================================
+   JUEGO 4: EAR TRAINING
+   Suenan dos notas y reconoces el intervalo. No usa archivos de audio:
+   las notas se sintetizan con Web Audio (suman armónicos que se apagan,
+   como una cuerda pulsada), así que funciona sin internet.
+   ========================================================= */
+
+// ---- Audio ----
+let audioCtx = null;
+let audioMaster = null;
+
+// Crea el contexto de audio la primera vez (debe ser dentro de un toque del usuario) y lo despierta si está dormido
+function audio(){
+  if(!audioCtx){
+    const AC = window.AudioContext || window.webkitAudioContext;
+    if(!AC) return null;
+    audioCtx = new AC();
+    const compresor = audioCtx.createDynamicsCompressor();   // evita saturar cuando suenan dos notas juntas
+    audioMaster = audioCtx.createGain();
+    audioMaster.gain.value = 0.85;
+    audioMaster.connect(compresor);
+    compresor.connect(audioCtx.destination);
+  }
+  if(audioCtx.state === 'suspended') audioCtx.resume();
+  return audioCtx;
+}
+
+// Frecuencia en Hz de una nota MIDI (69 = La4 = 440 Hz), afinación temperada
+function frecuencia(midi){ return 440 * Math.pow(2, (midi - 69) / 12); }
+
+// Una nota "pulsada": 6 armónicos; los agudos se apagan antes, como en una cuerda
+function tocarNota(ctx, destino, midi, cuando, duracion){
+  const f = frecuencia(midi);
+  const nota = ctx.createGain();
+  nota.gain.setValueAtTime(0, cuando);
+  nota.gain.linearRampToValueAtTime(0.16, cuando + 0.006);
+  nota.gain.exponentialRampToValueAtTime(0.0001, cuando + duracion);
+  nota.connect(destino);
+
+  for(let k = 1; k <= 6; k++){
+    const osc = ctx.createOscillator();
+    osc.type = 'sine';
+    osc.frequency.value = f * k;
+    const g = ctx.createGain();
+    g.gain.setValueAtTime(1 / k, cuando);
+    g.gain.exponentialRampToValueAtTime(0.0001, cuando + duracion / (1 + 0.7 * (k - 1)));
+    osc.connect(g);
+    g.connect(nota);
+    osc.start(cuando);
+    osc.stop(cuando + duracion + 0.05);
+  }
+}
+
+const DURACION_NOTA = 1.8;    // cuánto suena cada nota
+const PAUSA_MELODICA = 0.85;  // segundos entre la primera y la segunda nota
+
+// sonido = { a, b, modo }: "a" suena primero; con modo 'arm' las dos suenan a la vez
+function sintetizarIntervalo(ctx, destino, sonido, inicio){
+  tocarNota(ctx, destino, sonido.a, inicio, DURACION_NOTA);
+  tocarNota(ctx, destino, sonido.b, sonido.modo === 'arm' ? inicio : inicio + PAUSA_MELODICA, DURACION_NOTA);
+}
+
+function sonar(sonido){
+  const ctx = audio();
+  if(!ctx) return;
+  sintetizarIntervalo(ctx, audioMaster, sonido, ctx.currentTime + 0.05);
+  // El botón de escuchar "late" mientras suena
+  document.querySelectorAll('#note-display-oido .play-btn').forEach(b => {
+    b.classList.add('sonando');
+    setTimeout(() => b.classList.remove('sonando'), (sonido.modo === 'arm' ? 0 : PAUSA_MELODICA) * 1000 + DURACION_NOTA * 700);
+  });
+}
+
+function sonarPreguntaActual(){
+  if(!sesion || sesion.juego !== 'oido') return;
+  sonar(sesion.preguntas[sesion.indice].sonido);
+}
+
+// Cualquier botón de escuchar (están dentro del HTML de las preguntas) vuelve a sonar la pregunta
+document.addEventListener('click', e => {
+  if(e.target.closest('[data-sonar]')) sonarPreguntaActual();
+});
+
+// ---- Configuración y preguntas ----
+
+// "nivel" es el primer nivel en que aparece el intervalo
+const INTERVALOS_OIDO = [
+  { clave:'2m', semis:1,  nombre:'2ª menor',  nivel:1 },
+  { clave:'2M', semis:2,  nombre:'2ª mayor',  nivel:1 },
+  { clave:'3m', semis:3,  nombre:'3ª menor',  nivel:1 },
+  { clave:'3M', semis:4,  nombre:'3ª mayor',  nivel:1 },
+  { clave:'4J', semis:5,  nombre:'4ª justa',  nivel:1 },
+  { clave:'TT', semis:6,  nombre:'Tritono',   nivel:3 },
+  { clave:'5J', semis:7,  nombre:'5ª justa',  nivel:1 },
+  { clave:'6m', semis:8,  nombre:'6ª menor',  nivel:2 },
+  { clave:'6M', semis:9,  nombre:'6ª mayor',  nivel:2 },
+  { clave:'7m', semis:10, nombre:'7ª menor',  nivel:2 },
+  { clave:'7M', semis:11, nombre:'7ª mayor',  nivel:2 },
+  { clave:'8J', semis:12, nombre:'Octava',    nivel:1 },
+];
+const NIVELES_OIDO = [
+  { clave:'1', nombre:'Básico',       desc:'2ª, 3ª, 4ª, 5ª y octava (7 intervalos)' },
+  { clave:'2', nombre:'Con 6ª y 7ª',  desc:'Suma las sextas y las séptimas (11 intervalos)' },
+  { clave:'3', nombre:'Completo',     desc:'Suma el tritono (12 intervalos)' },
+];
+const MODOS_OIDO = [
+  { clave:'asc',  nombre:'Ascendente',  desc:'Una nota tras otra, subiendo' },
+  { clave:'desc', nombre:'Descendente', desc:'Una nota tras otra, bajando' },
+  { clave:'arm',  nombre:'Armónico',    desc:'Las dos notas a la vez' },
+];
+const OIDO = { guardado:'oido-stats-v1', etiqueta:'Intervalos reconocidos' };
+const TOTAL_OIDO = 10;
+
+let oidoNivel = '1';
+let oidoModo = 'asc';
+const statsOido = cargar(OIDO.guardado, STATS_BASE);
+
+function intervalosDelNivel(){ return INTERVALOS_OIDO.filter(d => d.nivel <= Number(oidoNivel)); }
+
+function pintarConfigOido(){
+  pintarTarjetas('oido-nivel-grid', NIVELES_OIDO, oidoNivel, clave => { oidoNivel = clave; pintarConfigOido(); });
+  pintarTarjetas('oido-modo-grid', MODOS_OIDO, oidoModo, clave => { oidoModo = clave; pintarConfigOido(); });
+  $('oido-aviso').style.display = (window.AudioContext || window.webkitAudioContext) ? 'none' : '';
+  pintarStats('oido', statsOido);
+  pintarRepaso('repaso-oido', 'oi:');
+}
+
+function abrirOido(){
+  juegoActual = 'oido';
+  pintarConfigOido();
+  mostrarPantalla('config-oido');
+}
+
+function empezarOido(){
+  empezarQuiz('oido', OIDO, statsOido, preguntasOido());
+}
+
+// 6 opciones: el correcto y los 5 intervalos del nivel más cercanos en tamaño
+function opcionesOido(def, del){
+  const cercanos = del.filter(d => d !== def)
+    .map(d => ({ d, dist: Math.abs(d.semis - def.semis) + Math.random() * 0.9 }))
+    .sort((a, b) => a.dist - b.dist)
+    .slice(0, 5)
+    .map(x => x.d);
+  return [def, ...cercanos].sort((a, b) => a.semis - b.semis).map(d => ({ valor:d.clave, texto:d.nombre }));
+}
+
+function botonEscuchar(){
+  return '<button class="play-btn" data-sonar aria-label="Escuchar el intervalo">' +
+    '<svg viewBox="0 0 24 24" width="40" height="40" aria-hidden="true"><path d="M8 5v14l11-7z" fill="currentColor"/></svg></button>';
+}
+
+function preguntasOido(){
+  const del = intervalosDelNivel();
+  return muestreoPonderado(del, TOTAL_OIDO, d => 'oi:' + d.clave).map(def => {
+    // Nota de partida entre La2 y Do4 (MIDI 45–60): la más aguda llega a Do5 como máximo
+    const base = 45 + Math.floor(Math.random() * 16);
+    const alta = base + def.semis;
+    // Descendente: suena primero la aguda. Ascendente y armónico: primero la grave.
+    const sonido = oidoModo === 'desc' ? { a:alta, b:base, modo:'desc' } : { a:base, b:alta, modo:oidoModo };
+    const nA = etiquetaPC(sonido.a % 12)[0], nB = etiquetaPC(sonido.b % 12)[0];
+    const etiqueta = { asc:'intervalo ascendente', desc:'intervalo descendente', arm:'sonando juntas' }[oidoModo];
+    return {
+      encabezado: botonEscuchar() + '<div class="root-label">toca para escuchar otra vez</div>',
+      encabezadoRevelado: botonEscuchar() + '<div class="root-label">toca para escuchar otra vez</div>' + parDeNotas(nA, nB, etiqueta),
+      texto: '¿Qué intervalo es?',
+      sonido,
+      correcta: def.clave,
+      textoError: def.clave === 'TT' ? 'Era un tritono' : (def.clave === '8J' ? 'Era una octava' : 'Era una ' + def.nombre),
+      detalle: '<em>' + nA + ' → ' + nB + '</em> · ' + def.semis + (def.semis === 1 ? ' semitono' : ' semitonos'),
+      repasoId: 'oi:' + def.clave,
+      repasoEt: def.nombre,
+      claseOpciones: 'seis',
+      claseBoton: 'sm xs',
+      opciones: opcionesOido(def, del),
+      // Al aparecer la pregunta suena sola (tras una pausa breve para que se vea la pantalla)
+      alMostrar: function(){ audio(); setTimeout(() => { if(sesion && sesion.juego === 'oido' && sesion.preguntas[sesion.indice] === this && !sesion.respondida) sonar(sonido); }, 350); }
+    };
+  });
+}
+
+/* =========================================================
    RESULTADO Y NAVEGACIÓN
    ========================================================= */
 
@@ -1788,6 +2039,7 @@ document.querySelectorAll('[data-ir]').forEach(boton => {
     if(destino === 'config-escalas') abrirEscalas();
     else if(destino === 'config-intervalos') abrirIntervalos();
     else if(destino === 'config-guitarra') abrirGuitarra();
+    else if(destino === 'config-oido') abrirOido();
     else mostrarPantalla(destino);
   });
 });
@@ -1795,15 +2047,23 @@ document.querySelectorAll('[data-ir]').forEach(boton => {
 $('card-escalas').addEventListener('click', abrirEscalas);
 $('card-intervalos').addEventListener('click', abrirIntervalos);
 $('card-guitarra').addEventListener('click', abrirGuitarra);
+$('card-oido').addEventListener('click', abrirOido);
 $('btn-start-escalas').addEventListener('click', empezarEscalas);
 $('btn-start-intervalos').addEventListener('click', empezarIntervalos);
 $('btn-start-guitarra').addEventListener('click', empezarGuitarra);
+$('btn-start-oido').addEventListener('click', empezarOido);
+// Suena una nota de prueba (La4 y Mi5) para comprobar el volumen
+$('btn-probar-sonido').addEventListener('click', () => {
+  const ctx = audio();
+  if(ctx) sintetizarIntervalo(ctx, audioMaster, { a:69, b:76, modo:'asc' }, ctx.currentTime + 0.05);
+});
 
 // Cada juego sabe abrir su menú y empezar una práctica
 const JUEGOS = {
   escalas:    { abrir: abrirEscalas,    empezar: empezarEscalas },
   intervalos: { abrir: abrirIntervalos, empezar: empezarIntervalos },
   guitarra:   { abrir: abrirGuitarra,   empezar: empezarGuitarra },
+  oido:       { abrir: abrirOido,       empezar: empezarOido },
 };
 $('btn-retry').addEventListener('click', () => JUEGOS[juegoActual].empezar());
 // "Menú" regresa al menú del juego que estabas jugando, no al inicio
