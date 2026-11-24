@@ -16,8 +16,8 @@
   --text:#EFE9E0;
   --muted:rgba(239,233,224,.55);
   --faint:rgba(239,233,224,.32);
-  --accent:#E0A458;
-  --accent-soft:rgba(224,164,88,.14);
+  --accent:#F08A3C;
+  --accent-soft:rgba(240,138,60,.15);
   --error:#E08A7E;
   --divider:rgba(239,233,224,.12);
   --radius:12px;
@@ -217,7 +217,7 @@ button:focus-visible{outline:2px solid var(--accent);outline-offset:2px;}
 .note-btn.error{border-color:var(--error);color:var(--error);animation:sacudir .4s;}
 .note-btn.pista{border-color:var(--accent);animation:pulso 1.2s ease-in-out infinite;}
 @keyframes sacudir{0%,100%{transform:translateX(0)}25%{transform:translateX(-4px)}75%{transform:translateX(4px)}}
-@keyframes pulso{0%,100%{box-shadow:0 0 0 0 rgba(224,164,88,0)}50%{box-shadow:0 0 0 4px rgba(224,164,88,.28)}}
+@keyframes pulso{0%,100%{box-shadow:0 0 0 0 rgba(240,138,60,0)}50%{box-shadow:0 0 0 4px rgba(240,138,60,.30)}}
 
 /* ---- Juego de intervalos ---- */
 .root-note{
@@ -442,10 +442,11 @@ button:focus-visible{outline:2px solid var(--accent);outline-offset:2px;}
       <p class="helper" id="gui-int-helper"></p>
       <div class="chip-grid" id="gui-int-chips"></div>
       <p class="helper leyenda">m = menor · M = mayor · J = justa. La nota de referencia es siempre la más grave de las dos.</p>
+      <p class="helper leyenda">Las formas son las naturales de la mano, como en un acorde de cejilla: las dos notas quedan a 3 trastes o menos y a 2 cuerdas o menos (la octava, por ejemplo, va dos cuerdas más arriba). Las segundas pueden ir en la misma cuerda.</p>
 
-      <div class="section-label">Cuerdas vecinas</div>
-      <p class="helper" id="gui-pares-helper"></p>
-      <div class="chip-grid tres" id="gui-pares-chips"></div>
+      <div class="section-label">Cuerda de la nota de referencia</div>
+      <p class="helper" id="gui-raices-helper"></p>
+      <div class="chip-grid tres" id="gui-raices-chips"></div>
     </div>
 
     <div class="spacer"></div>
@@ -1503,7 +1504,7 @@ const ZONAS_GUI = [
 // Los ejercicios del juego de guitarra ("armar" crea las preguntas; "repaso" es el prefijo de sus puntos débiles)
 const EJERCICIOS_GUI = [
   { clave:'notas',      nombre:'Notas en el mástil',      desc:'Te marco una posición, tú la nota',            guardado:'guitarra-stats-v1',            etiqueta:'Notas encontradas',        repaso:'gui:', armar:preguntasGuitarra },
-  { clave:'intervalos', nombre:'Intervalos en el mástil', desc:'Dos notas en cuerdas vecinas, tú el intervalo', guardado:'guitarra-intervalos-stats-v1', etiqueta:'Intervalos identificados', repaso:'gi:',  armar:preguntasGuitarraIntervalos },
+  { clave:'intervalos', nombre:'Intervalos en el mástil', desc:'Dos notas en una forma natural de la mano, tú el intervalo', guardado:'guitarra-intervalos-stats-v1', etiqueta:'Intervalos identificados', repaso:'gi:',  armar:preguntasGuitarraIntervalos },
 ];
 
 // Intervalos del mástil. Sin nombres de nota a la vista, el tritono sería ambiguo (4ª aum. o 5ª dism.), así que no entra.
@@ -1516,7 +1517,11 @@ const INTERVALOS_GUI = [
   { clave:'5J', semis:7,  nombre:'5ª justa' },
   { clave:'8J', semis:12, nombre:'Octava' },
 ];
-const PARES_GUI = [6, 5, 4, 3, 2];   // cada par es (n, n-1): 6ª–5ª, 5ª–4ª…
+
+// Qué tan lejos pueden quedar las dos notas para que la forma sea natural en la guitarra:
+// como máximo 3 trastes de diferencia (del índice al meñique) y 2 cuerdas de distancia.
+const MAX_TRASTES = 3;
+const MAX_CUERDAS = 2;
 const TOTAL_GUITARRA = 10;
 
 let guitarraCuerdas = new Set();   // vacío = todas
@@ -1524,7 +1529,7 @@ let guitarraNotas = 'naturales';
 let guitarraZona = '12';
 let guitarraEj = 'notas';
 let guitarraIntervalos = new Set();   // vacío = todos
-let guitarraPares = new Set();        // vacío = todos
+let guitarraRaices = new Set();       // cuerdas de la nota de referencia; vacío = todas
 const statsGuitarraPorEj = {};
 EJERCICIOS_GUI.forEach(e => statsGuitarraPorEj[e.clave] = cargar(e.guardado, STATS_BASE));
 
@@ -1579,9 +1584,8 @@ function pintarConfigGuitarra(){
   // Ejercicio "intervalos"
   pintarChipsMulti('gui-int-chips', INTERVALOS_GUI, guitarraIntervalos, it => it.clave, pintarConfigGuitarra);
   $('gui-int-helper').textContent = textoElegidos(guitarraIntervalos.size, 'intervalo', 'intervalos') || 'Toca uno o varios. Si no eliges ninguno, salen los 7.';
-  const pares = PARES_GUI.map(n => ({ clave:n, nombre:'cuerdas ' + n + 'ª y ' + (n - 1) + 'ª' }));
-  pintarChipsMulti('gui-pares-chips', pares, guitarraPares, it => it.clave + 'ª–' + (it.clave - 1) + 'ª', pintarConfigGuitarra);
-  $('gui-pares-helper').textContent = textoElegidos(guitarraPares.size, 'par', 'pares') || 'Las dos notas van en cuerdas vecinas. Si no eliges ninguno, salen los 5 pares.';
+  pintarChipsMulti('gui-raices-chips', cuerdas, guitarraRaices, it => it.c.num + 'ª · ' + it.c.nombre, pintarConfigGuitarra);
+  $('gui-raices-helper').textContent = textoElegidos(guitarraRaices.size, 'cuerda', 'cuerdas') || 'Toca una o varias. Si no eliges ninguna, la referencia puede estar en cualquiera.';
 
   pintarStats('guitarra', statsGuitarraPorEj[ej.clave]);
   pintarRepaso('repaso-guitarra', ej.repaso);
@@ -1638,20 +1642,25 @@ function preguntasGuitarra(){
   });
 }
 
-// Todas las formas posibles de un intervalo entre dos cuerdas vecinas, dentro de la zona elegida.
-// La nota de referencia es la más grave; puede estar en cualquiera de las dos cuerdas del par.
+// Todas las formas naturales de un intervalo, dentro de la zona elegida.
+// La nota de referencia (la más grave) va en la cuerda "desde" y la otra en la misma cuerda o
+// en una más aguda, hasta MAX_CUERDAS de distancia y a MAX_TRASTES trastes o menos de la primera.
+// Así la octava queda dos cuerdas más arriba (+2 trastes) y no a siete trastes de distancia.
+// En la misma cuerda solo van las segundas (trastes contiguos).
 function formasDeIntervalo(def){
   const N = Number(guitarraZona);
-  const pares = guitarraPares.size > 0 ? PARES_GUI.filter(n => guitarraPares.has(n)) : PARES_GUI;
+  const desdes = guitarraRaices.size > 0 ? CUERDAS.filter(c => guitarraRaices.has(c.num)) : CUERDAS;
   const formas = [];
-  pares.forEach(n => {
-    const a = cuerdaPorNum(n), b = cuerdaPorNum(n - 1);
-    [[a, b], [b, a]].forEach(([desde, hacia]) => {
+  desdes.forEach(desde => {
+    for(let salto = 0; salto <= MAX_CUERDAS; salto++){
+      if(salto === 0 && def.semis > 2) continue;
+      const hacia = cuerdaPorNum(desde.num - salto);
+      if(!hacia) continue;
       for(let f1 = 0; f1 <= N; f1++){
         const f2 = desde.abs + f1 + def.semis - hacia.abs;
-        if(f2 >= 0 && f2 <= N) formas.push({ desde, f1, hacia, f2 });
+        if(f2 >= 0 && f2 <= N && Math.abs(f2 - f1) <= MAX_TRASTES) formas.push({ desde, f1, hacia, f2 });
       }
-    });
+    }
   });
   return formas;
 }
