@@ -129,6 +129,22 @@ body.en-practica .paleta{display:block;}
 .grande.pri{border:1px solid var(--accent);background:transparent;color:var(--accent);}
 .grande.pri:active{background:var(--accent-soft);}
 
+/* ---- Hoja de teoría ---- */
+.sheet{display:none;position:fixed;inset:0;z-index:40;background:rgba(0,0,0,.62);align-items:flex-end;justify-content:center;}
+.sheet.abierta{display:flex;}
+.sheet-panel{width:100%;max-width:440px;max-height:90vh;overflow-y:auto;background:var(--bg);border:1px solid var(--divider);
+  border-radius:20px 20px 0 0;padding:18px 18px calc(24px + env(safe-area-inset-bottom,0px));overscroll-behavior:contain;}
+.sheet-top{display:flex;align-items:flex-start;gap:12px;}
+.sheet-titulo{flex:1;font-family:var(--serif);font-size:26px;line-height:1.15;}
+.sheet-tag{font-family:var(--sans);font-size:11px;font-weight:500;color:var(--accent);text-transform:uppercase;letter-spacing:.1em;margin-bottom:6px;}
+.sheet h3{font-size:11px;font-weight:500;color:var(--muted);text-transform:uppercase;letter-spacing:.1em;margin:22px 0 8px;}
+.sheet p,.sheet li{font-size:14px;line-height:1.6;margin:0;color:rgba(239,233,224,.88);}
+.sheet ul{margin:0;padding-left:18px;display:flex;flex-direction:column;gap:6px;}
+.cifras{display:flex;flex-direction:column;gap:6px;}
+.cifra{display:flex;gap:10px;font-size:13px;color:var(--muted);line-height:1.45;}
+.cifra b{color:var(--accent);font-family:var(--serif);font-size:15px;min-width:44px;font-weight:500;}
+.sheet .pauta{margin-top:0;}
+
 /* ---- Pentagrama ---- */
 .p-linea{stroke:var(--faint);stroke-width:1;}
 .p-barra{stroke:var(--muted);stroke-width:1.2;}
@@ -153,6 +169,11 @@ body.en-practica .paleta{display:block;}
     <p class="subtitle">Escribe el tenor, el contralto y el soprano sobre un bajo cifrado. Comprueba tus reglas y, si lo necesitas, pide una pista o la solución.</p>
 
     <div id="continuar" style="display:none;margin-top:22px;"></div>
+
+    <button class="card" id="card-guia" style="width:100%;margin-top:22px;">
+      <div class="card-main"><div class="card-name">Guía: las cadencias</div>
+      <div class="card-desc">Qué son, para qué sirven y en qué ejercicio se practica cada una.</div></div>
+    </button>
 
     <div class="section-label">Tonalidad</div>
     <div class="chips" id="chips-ton"></div>
@@ -180,6 +201,7 @@ body.en-practica .paleta{display:block;}
         <div class="practica-nombre" id="p-nombre"></div>
         <div class="practica-clave" id="p-clave"></div>
       </div>
+      <button class="icon-btn" id="btn-teoria" aria-label="Teoría de este ejercicio" style="font-family:var(--serif);font-style:italic;">i</button>
     </div>
 
     <div class="toolbar">
@@ -198,6 +220,18 @@ body.en-practica .paleta{display:block;}
 
     <div class="resultado" id="resultado" aria-live="polite"></div>
   </section>
+</div>
+
+<!-- ============ HOJA DE TEORÍA ============ -->
+<div class="sheet" id="sheet" aria-hidden="true">
+  <div class="sheet-panel" id="sheet-panel" role="dialog" aria-modal="true" aria-labelledby="sheet-titulo">
+    <div class="sheet-top">
+      <div class="sheet-titulo" id="sheet-titulo"></div>
+      <button class="icon-btn" id="sheet-cerrar" aria-label="Cerrar">&#10005;</button>
+    </div>
+    <div id="sheet-cuerpo"></div>
+    <button class="btn btn-primary" onclick="cerrarTeoria()" style="margin-top:22px;">Entendido</button>
+  </div>
 </div>
 
 <!-- ============ PALETA INFERIOR ============ -->
@@ -353,6 +387,7 @@ const FORMULAS = [
   { id:'2b', nivel:2, desc:'Empieza con I en primera inversión', acordes:[[2,'6'],[3,''],[4,''],[0,'']] },
   { id:'2c', nivel:2, desc:'Subdominante en primera inversión',  acordes:[[0,''],[5,'6'],[4,''],[0,'']] },
   { id:'2d', nivel:2, desc:'Cinco acordes con inversión',   acordes:[[0,''],[2,'6'],[3,''],[4,''],[0,'']] },
+  { id:'2e', nivel:2, desc:'Empieza con I en primera inversión y salta a V', acordes:[[2,'6'],[4,''],[0,'']] },
   { id:'3a', nivel:3, desc:'Cadencia con 6/4 cadencial',    acordes:[[0,''],[4,'6/4'],[4,''],[0,'']] },
   { id:'3b', nivel:3, desc:'IV antes del 6/4',              acordes:[[0,''],[3,''],[4,'6/4'],[4,''],[0,'']] },
   { id:'4a', nivel:4, desc:'Dominante con séptima',         acordes:[[0,''],[4,'7'],[0,'']] },
@@ -360,6 +395,7 @@ const FORMULAS = [
   { id:'4c', nivel:4, desc:'Primera inversión de V⁷',       acordes:[[0,''],[6,'6/5'],[0,'']] },
   { id:'4d', nivel:4, desc:'Segunda inversión de V⁷',       acordes:[[0,''],[1,'4/3'],[0,'']] },
   { id:'4e', nivel:4, desc:'Tercera inversión de V⁷',       acordes:[[0,''],[3,'4/2'],[2,'6']] },
+  { id:'4f', nivel:4, desc:'Empieza con I⁶ y sigue con V⁷', acordes:[[2,'6'],[4,'7'],[0,'']] },
 ];
 
 function nombreFormula(f){
@@ -720,7 +756,7 @@ function leer(clave, base){
 }
 function escribir(clave, datos){ try{ localStorage.setItem(clave, JSON.stringify(datos)); }catch(e){} }
 
-const progreso = leer(CLAVE_PROGRESO, { ok:{} });
+const progreso = leer(CLAVE_PROGRESO, { ok:{}, vistas:{} });
 let tonElegida = null;                       // null = aleatoria
 
 let est = null;   // el ejercicio en curso
@@ -766,6 +802,7 @@ function empezar(fid){
   const ej = generarEjercicio(f, tonElegida);
   if(!ej){ alert('No se pudo generar un ejercicio con estos ajustes.'); return; }
   abrirEjercicio(ej, null);
+  if(!progreso.vistas[fid]) abrirTeoria(fid);   // la primera vez, antes de empezar
 }
 
 /* =========================================================
@@ -858,21 +895,22 @@ function cabeza(x, y, color, fantasma){
          '<ellipse cx="' + x + '" cy="' + y + '" rx="2.5" ry="4.1" transform="rotate(48 ' + x + ' ' + y + ')" fill="var(--surface)"/>';
 }
 
-function dibujar(){
-  if(!est) return;
-  const ej = est.ej, ton = ej.ton, n = ej.n;
+// o: { sel, sonando, fantasma, fantasmaSolo, resaltado, analisis, slots }
+function svgPauta(ej, voz, o){
+  const ton = ej.ton, n = ej.n;
+  const H = o.slots ? GEO.H : GEO.H - 32;   // sin casillas el dibujo es más bajo
   const nAcc = ton.nSost + ton.nBem;
   const xIni = 52 + nAcc * 9 + 10, xFin = GEO.W - 14;
   const colW = (xFin - xIni) / n;
   const cx = c => xIni + colW * (c + 0.5);
   const yTop = yAgudo(38), yBot = GEO.yBB;
-  let s = '<svg viewBox="0 0 ' + GEO.W + ' ' + GEO.H + '" role="img" aria-label="Pentagrama del ejercicio">';
+  let s = '<svg viewBox="0 0 ' + GEO.W + ' ' + H + '" role="img" aria-label="Pentagrama del ejercicio">';
 
   // Bandas de la columna seleccionada y de la que suena
   for(let c = 0; c < n; c++){
     const x = xIni + colW * c;
-    if(est.sonando === c) s += '<rect class="p-banda suena" x="' + x + '" y="28" width="' + colW + '" height="' + (GEO.H - 56) + '" rx="8"/>';
-    else if(est.sel.c === c) s += '<rect class="p-banda" x="' + x + '" y="28" width="' + colW + '" height="' + (GEO.H - 56) + '" rx="8"/>';
+    if(o.sonando === c) s += '<rect class="p-banda suena" x="' + x + '" y="28" width="' + colW + '" height="' + (H - 56) + '" rx="8"/>';
+    else if(o.sel && o.sel.c === c) s += '<rect class="p-banda" x="' + x + '" y="28" width="' + colW + '" height="' + (H - 56) + '" rx="8"/>';
   }
 
   // Pentagramas
@@ -897,7 +935,7 @@ function dibujar(){
   // Notas
   const pos = {};   // posiciones diatónicas de las notas escritas, para desplazar las segundas
   for(let c = 0; c < n; c++){
-    const V = voces(ej, est.voz, c);
+    const V = voces(ej, voz, c);
     VOCES.forEach(v => { if(V[v] != null) pos[c + v] = posicion(V[v], ton); });
   }
   const dibujarVoz = (c, v, m, fantasma) => {
@@ -911,22 +949,22 @@ function dibujar(){
     return ledgers(clave, p, x) + cabeza(x, y, COLOR_VOZ[v], fantasma);
   };
   for(let c = 0; c < n; c++){
-    const V = voces(ej, est.voz, c);
+    const V = voces(ej, voz, c);
     VOCES.forEach(v => { if(V[v] != null) s += dibujarVoz(c, v, V[v], false); });
   }
 
   // Fantasma: solución completa o una sola nota
   const fant = [];
-  if(est.fantasma) for(let c = 0; c < n; c++) ['S', 'A', 'T'].forEach(v => {
-    if(est.voz[c][v] !== est.fantasma[c][v]) fant.push([c, v, est.fantasma[c][v]]);
+  if(o.fantasma) for(let c = 0; c < n; c++) ['S', 'A', 'T'].forEach(v => {
+    if(voz[c][v] !== o.fantasma[c][v]) fant.push([c, v, o.fantasma[c][v]]);
   });
-  if(est.fantasmaSolo) fant.push([est.fantasmaSolo.c, est.fantasmaSolo.v, est.fantasmaSolo.m]);
+  if(o.fantasmaSolo) fant.push([o.fantasmaSolo.c, o.fantasmaSolo.v, o.fantasmaSolo.m]);
   fant.forEach(([c, v, m]) => { s += dibujarVoz(c, v, m, true); });
 
   // Problemas resaltados
-  if(est.resaltado){
-    est.resaltado.cols.forEach(c => est.resaltado.voces.forEach(v => {
-      const V = voces(ej, est.voz, c);
+  if(o.resaltado){
+    o.resaltado.cols.forEach(c => o.resaltado.voces.forEach(v => {
+      const V = voces(ej, voz, c);
       if(V[v] == null) return;
       const p = posicion(V[v], ton);
       const y = (v === 'S' || v === 'A') ? yAgudo(p) : yGrave(p);
@@ -939,11 +977,11 @@ function dibujar(){
     const ac = ej.acordes[c];
     const partes = ac.fig ? ac.fig.split('/') : [];
     partes.forEach((t, i) => { s += '<text class="p-fig" x="' + cx(c) + '" y="' + (GEO.yBB + 36 + i * 13) + '">' + t + '</text>'; });
-    if(est.analisis) s += '<text class="p-romano" x="' + cx(c) + '" y="20">' + ac.nombre + '</text>';
-    ORDEN_ENTRADA.forEach((v, i) => {
-      const x = cx(c) + (i - 1) * 17, y = GEO.H - 22;
-      const lleno = est.voz[c][v] != null;
-      const sel = est.sel.c === c && est.sel.v === v;
+    if(o.analisis) s += '<text class="p-romano" x="' + cx(c) + '" y="20">' + ac.nombre + '</text>';
+    if(o.slots) ORDEN_ENTRADA.forEach((v, i) => {
+      const x = cx(c) + (i - 1) * 17, y = H - 22;
+      const lleno = voz[c][v] != null;
+      const sel = !!o.sel && o.sel.c === c && o.sel.v === v;
       s += '<g class="p-slot" data-col="' + c + '" data-voz="' + v + '">' +
         '<circle cx="' + x + '" cy="' + y + '" r="14" fill="transparent"/>' +
         '<circle cx="' + x + '" cy="' + y + '" r="' + (sel ? 7.5 : 6) + '" fill="' + (lleno ? COLOR_VOZ[v] : 'none') + '" stroke="' + (sel ? 'var(--text)' : COLOR_VOZ[v]) + '" stroke-width="' + (sel ? 2 : 1.4) + '"/></g>';
@@ -951,10 +989,15 @@ function dibujar(){
   }
 
   // Zonas para tocar cada acorde
-  for(let c = 0; c < n; c++)
-    s += '<rect class="p-hit" data-col="' + c + '" x="' + (xIni + colW * c) + '" y="28" width="' + colW + '" height="' + (GEO.H - 72) + '"/>';
+  if(o.slots) for(let c = 0; c < n; c++)
+    s += '<rect class="p-hit" data-col="' + c + '" x="' + (xIni + colW * c) + '" y="28" width="' + colW + '" height="' + (H - 72) + '"/>';
 
-  $('pauta').innerHTML = s + '</svg>';
+  return s + '</svg>';
+}
+
+function dibujar(){
+  if(!est) return;
+  $('pauta').innerHTML = svgPauta(est.ej, est.voz, { sel:est.sel, sonando:est.sonando, fantasma:est.fantasma, fantasmaSolo:est.fantasmaSolo, resaltado:est.resaltado, analisis:est.analisis, slots:true });
 }
 
 /* =========================================================
@@ -1171,21 +1214,310 @@ function pintarResultado(){
 }
 
 /* ---- Escuchar ---- */
-function escuchar(){
-  if(est.sonando != null){ detenerAudio(); est.sonando = null; $('b-escuchar').innerHTML = '&#9654;&#xFE0E; Escuchar'; dibujar(); return; }
+const PASO_ACORDE = 1.5;   // segundos por acorde
+
+// Toca los acordes uno tras otro. alPaso(c) avisa del acorde que suena; alTerminar() al final.
+function tocarSecuencia(ej, fuente, alPaso, alTerminar){
   const a = nuevaSalida();
-  if(!a) return;
-  const paso = 1.5, t0 = a.ctx.currentTime + 0.05;
-  const fuente = est.fantasma ? est.fantasma.map((x, c) => ({ S: est.voz[c].S ?? x.S, A: est.voz[c].A ?? x.A, T: est.voz[c].T ?? x.T })) : est.voz;
-  for(let c = 0; c < est.ej.n; c++){
-    const V = voces(est.ej, fuente, c);
-    VOCES.forEach(v => { if(V[v] != null) tocarNota(a.ctx, a.salida, V[v], t0 + c * paso, paso * 1.05); });
-    tempSonando.push(setTimeout(() => { if(est){ est.sonando = c; dibujar(); } }, 50 + c * paso * 1000));
+  if(!a) return false;
+  const t0 = a.ctx.currentTime + 0.05;
+  for(let c = 0; c < ej.n; c++){
+    const V = voces(ej, fuente, c);
+    VOCES.forEach(v => { if(V[v] != null) tocarNota(a.ctx, a.salida, V[v], t0 + c * PASO_ACORDE, PASO_ACORDE * 1.05); });
+    tempSonando.push(setTimeout(() => alPaso(c), 50 + c * PASO_ACORDE * 1000));
   }
-  tempSonando.push(setTimeout(() => { if(est){ est.sonando = null; $('b-escuchar').innerHTML = '&#9654;&#xFE0E; Escuchar'; dibujar(); } }, 50 + est.ej.n * paso * 1000));
+  tempSonando.push(setTimeout(alTerminar, 50 + ej.n * PASO_ACORDE * 1000));
+  return true;
+}
+
+function escuchar(){
+  const boton = $('b-escuchar');
+  const reposo = () => { boton.innerHTML = '&#9654;&#xFE0E; Escuchar'; };
+  if(est.sonando != null){ detenerAudio(); est.sonando = null; reposo(); dibujar(); return; }
+  const fuente = est.fantasma ? est.fantasma.map((x, c) => ({ S: est.voz[c].S ?? x.S, A: est.voz[c].A ?? x.A, T: est.voz[c].T ?? x.T })) : est.voz;
+  const sonando = tocarSecuencia(est.ej, fuente,
+    c => { if(est){ est.sonando = c; dibujar(); } },
+    () => { if(est){ est.sonando = null; reposo(); dibujar(); } });
+  if(!sonando) return;
   est.sonando = 0;
-  $('b-escuchar').innerHTML = '&#9632; Parar';
+  boton.innerHTML = '&#9632; Parar';
   dibujar();
+}
+
+/* =========================================================
+   TEORÍA: qué es cada fórmula, cómo se usa y qué cuidar
+   Los ejemplos de las notas usan Do mayor.
+   ========================================================= */
+
+const TEORIA = {
+  '1a': {
+    tipo:'Cadencia auténtica',
+    que:`Va del acorde de dominante (V) al de tónica (I). Es la cadencia más conclusiva: el V crea tensión, sobre todo por la sensible (Si en Do mayor), que pide subir a la tónica, y el I la resuelve en reposo.`,
+    uso:`Cierra frases y piezas, como un punto final. Si los dos acordes están en estado fundamental y la melodía termina en la tónica, se llama auténtica perfecta.`,
+    cuidar:[
+      `El bajo salta de la tónica a la dominante. Mueve las voces superiores en sentido contrario al bajo o mantén notas comunes: así evitas quintas y octavas paralelas.`,
+      `La sensible sube a la tónica (Si → Do).`,
+      `En estado fundamental lo habitual es duplicar la fundamental, que es la nota del bajo.`
+    ]
+  },
+  '1b': {
+    tipo:'Cadencia plagal',
+    que:`Va del acorde de subdominante (IV) al de tónica (I). No hay sensible, así que la tensión es mucho menor que en la auténtica.`,
+    uso:`Suena suave, como el "amén" de los himnos. Suele añadirse después de una cadencia auténtica para cerrar con calma.`,
+    cuidar:[
+      `IV e I comparten una nota (Do): mantenla en la misma voz.`,
+      `Mueve las demás voces por grado, en sentido contrario al bajo.`,
+      `En estado fundamental duplica la fundamental.`
+    ]
+  },
+  '1c': {
+    tipo:'Progresión con las tres funciones',
+    que:`Recorre las tres funciones armónicas: tónica (reposo), subdominante (se aleja) y dominante (tensión), para volver a la tónica. Termina con una cadencia auténtica.`,
+    uso:`Es el esqueleto de muchísima música tonal: gran parte de las frases son variaciones de este esquema.`,
+    cuidar:[
+      `De IV a V el bajo sube un grado y no hay notas comunes. Mueve las voces superiores en sentido contrario al bajo para evitar quintas y octavas paralelas.`,
+      `La sensible de V sube a la tónica al llegar al I.`
+    ]
+  },
+  '1d': {
+    tipo:'Progresión con el sexto grado',
+    que:`El acorde de vi (La menor en Do mayor) comparte dos notas con la tónica (Do y Mi). Puede sustituirla: sigue sonando a reposo, pero con un color más suave. Aquí el bajo desciende por grados: 1 – 6 – 5.`,
+    uso:`Da variedad a la tónica antes de llegar a la dominante, sin cambiar de función armónica.`,
+    cuidar:[
+      `Entre I y vi conserva las notas comunes y mueve las otras por grado.`,
+      `Vigila las quintas y octavas paralelas entre el bajo y las voces superiores en cada paso.`,
+      `Al final, la sensible sube a la tónica.`
+    ]
+  },
+  '2a': {
+    tipo:'Dominante en primera inversión',
+    que:`Es el acorde de V con su tercera, la sensible, en el bajo (cifra 6). El bajo hace 1 – 7 – 1: baja un semitono y vuelve a la tónica.`,
+    uso:`Suaviza el paso por la dominante: el bajo se mueve por grado en vez de saltar. Suena menos conclusivo que V en estado fundamental, por eso se usa dentro de la frase y no para cerrarla.`,
+    cuidar:[
+      `La sensible ya está en el bajo: no la dupliques en las voces superiores.`,
+      `Duplica la fundamental o la quinta del acorde (Sol o Re).`,
+      `El bajo sube a la tónica al resolver.`
+    ]
+  },
+  '2b': {
+    tipo:'Tónica en primera inversión al inicio',
+    que:`El primer acorde es I⁶: el de tónica con su tercera (Mi) en el bajo. Así suena más ligero e inestable que en estado fundamental. El bajo asciende por grados 3 – 4 – 5 y llega a la tónica por cadencia auténtica.`,
+    uso:`Es habitual al comenzar una frase, para que el bajo tenga una línea melódica en vez de saltos.`,
+    cuidar:[
+      `En primera inversión puedes duplicar cualquier nota del acorde, excepto la sensible (aquí no aparece).`,
+      `El bajo sube por grado hasta V: mueve las voces superiores en sentido contrario o mantén notas comunes.`
+    ]
+  },
+  '2c': {
+    tipo:'Subdominante en primera inversión',
+    que:`IV⁶ es el acorde de Fa con su tercera (La) en el bajo. El bajo desciende por grados: 1 – 6 – 5, y luego se llega a la tónica.`,
+    uso:`Un bajo descendente por grados suena fluido; es una forma frecuente de preparar la dominante.`,
+    cuidar:[
+      `En primera inversión puedes duplicar cualquier nota salvo la sensible.`,
+      `Vigila las quintas y octavas paralelas entre el bajo y las voces superiores.`
+    ]
+  },
+  '2d': {
+    tipo:'Prolongación de la tónica',
+    que:`I e I⁶ tienen las mismas notas: solo cambia cuál está en el bajo. Con el cambio, el bajo sube 1 – 3 – 4 – 5 antes de la cadencia.`,
+    uso:`Sirve para alargar la tónica dándole movimiento al bajo, sin cambiar la armonía.`,
+    cuidar:[
+      `De I a I⁶ cambia el bajo: mueve lo mínimo las voces superiores.`,
+      `A partir de IV, cuida el movimiento contrario al bajo para evitar paralelas.`
+    ]
+  },
+  '2e': {
+    tipo:'Tónica invertida y cadencia auténtica',
+    que:`Empieza con el acorde de I en primera inversión (Mi en el bajo) y sigue con una cadencia auténtica. El bajo hace un salto de tercera, de Mi a Sol, y luego baja a la dominante y vuelve.`,
+    uso:`Es una forma de comenzar: el I⁶ es más ligero que el I y deja el bajo más suelto antes de llegar a V.`,
+    cuidar:[
+      `De I⁶ a V comparten una nota (Sol): mantenla y mueve las otras voces por grado.`,
+      `En el V la sensible sube a la tónica; en el I final duplica la fundamental.`,
+      `En primera inversión puedes duplicar cualquier nota salvo la sensible.`
+    ]
+  },
+  '3a': {
+    tipo:'Cadencia con 6/4 cadencial',
+    que:`El acorde de 6/4 (Do – Mi – Sol con Sol en el bajo) no es una tónica real: sobre el bajo de la dominante, Do y Mi son apoyaturas que resuelven bajando por grado a Si y Re, las notas del V. Después viene el I.`,
+    uso:`Es la forma clásica de adornar la cadencia auténtica: aparece justo antes del V y refuerza el final de la frase.`,
+    cuidar:[
+      `Duplica el bajo (Sol), que es la quinta del acorde.`,
+      `La 4ª y la 6ª sobre el bajo (Do y Mi) bajan por grado al V; el bajo se queda quieto.`,
+      `En el V la sensible sube a la tónica.`
+    ]
+  },
+  '3b': {
+    tipo:'Cadencia con 6/4 cadencial y subdominante',
+    que:`Igual que el ejercicio anterior, pero con el IV antes del 6/4: sube el bajo de Fa a Sol y el 6/4 se convierte en una apoyatura de la dominante.`,
+    uso:`Es un recorrido típico del final de una frase: subdominante, 6/4 cadencial, dominante y tónica.`,
+    cuidar:[
+      `Del IV al 6/4 mantén la nota común (Do) y mueve las demás por grado.`,
+      `En el 6/4, duplica el bajo y baja por grado la 4ª y la 6ª hacia el V.`
+    ]
+  },
+  '4a': {
+    tipo:'Cadencia auténtica con séptima de dominante',
+    que:`Al acorde de V se le añade una séptima (Fa en Do mayor). Forma un tritono con la tercera (Si – Fa), lo que da más tensión y empuja con más fuerza a resolver.`,
+    uso:`Refuerza la cadencia auténtica; es la forma habitual de la dominante en la música clásica.`,
+    cuidar:[
+      `La séptima (Fa) baja por grado a Mi; la sensible (Si) sube a Do.`,
+      `Puede ir V⁷ completo y I incompleto (sin quinta y con la fundamental triplicada), o V⁷ incompleto (sin quinta, con la fundamental duplicada) y I completo.`,
+      `Nunca dupliques la séptima.`
+    ]
+  },
+  '4b': {
+    tipo:'Progresión con subdominante y V⁷',
+    que:`Como el ejercicio anterior, pero con el IV antes de la dominante: recorre subdominante, dominante con séptima y tónica.`,
+    uso:`Es un cierre muy completo: aleja, tensa y resuelve.`,
+    cuidar:[
+      `De IV a V⁷ el bajo sube un grado: mueve las voces superiores en sentido contrario.`,
+      `La séptima baja por grado y la sensible sube a la tónica.`
+    ]
+  },
+  '4c': {
+    tipo:'V⁶⁄₅: primera inversión de V⁷',
+    que:`Es V⁷ con la sensible (Si) en el bajo. Sobre ella suenan la 3ª, la 5ª y la 6ª (cifra 6/5). El acorde suena completo: no hay notas duplicadas.`,
+    uso:`Mantiene la tensión de la séptima y da un bajo que sube por semitono a la tónica.`,
+    cuidar:[
+      `El bajo es la sensible: sube a la tónica.`,
+      `La séptima (Fa) baja por grado en una voz superior.`,
+      `Como las cuatro notas del acorde ya suenan una vez, no se duplica ninguna.`
+    ]
+  },
+  '4d': {
+    tipo:'V⁴⁄₃: segunda inversión de V⁷',
+    que:`Es V⁷ con su quinta (Re) en el bajo; sobre ella suenan la 3ª, la 4ª y la 6ª (cifra 4/3). El bajo hace Do – Re – Do.`,
+    uso:`Permite que el bajo se mueva por grado, subiendo y volviendo a la tónica, mientras la dominante mantiene su tensión.`,
+    cuidar:[
+      `La séptima (Fa) baja por grado; la sensible (Si) sube.`,
+      `El acorde va completo: no dupliques ninguna nota.`
+    ]
+  },
+  '4e': {
+    tipo:'V⁴⁄₂: tercera inversión de V⁷',
+    que:`Es V⁷ con su séptima (Fa) en el bajo; sobre ella suenan la 2ª, la 4ª y la 6ª (cifra 4/2). Resuelve a I⁶: el bajo baja por grado de Fa a Mi.`,
+    uso:`Da un bajo descendente por grados y deja la tónica en primera inversión, lo que invita a continuar.`,
+    cuidar:[
+      `La séptima ya está en el bajo: baja por grado a la tercera de I (Fa → Mi).`,
+      `La sensible sube a la tónica.`,
+      `No dupliques la séptima en las voces superiores.`
+    ]
+  },
+  '4f': {
+    tipo:'Tónica invertida y dominante con séptima',
+    que:`Empieza con I⁶ (Mi en el bajo) y va a V⁷ en estado fundamental, con una resolución final a I.`,
+    uso:`Es un inicio ligero que lleva a una dominante con mucha tensión.`,
+    cuidar:[
+      `De I⁶ a V⁷ comparten una nota (Sol): mantenla y mueve las otras voces por grado.`,
+      `La séptima de V⁷ baja por grado; la sensible sube a la tónica.`,
+      `Nunca dupliques la séptima.`
+    ]
+  }
+};
+
+const SIGNIFICADO_CIFRA = {
+  '':    'sin cifra: estado fundamental (5/3)',
+  '6':   '6: primera inversión, el bajo es la tercera',
+  '6/4': '6/4: segunda inversión, el bajo es la quinta',
+  '7':   '7: séptima, estado fundamental',
+  '6/5': '6/5: primera inversión de séptima, el bajo es la tercera',
+  '4/3': '4/3: segunda inversión de séptima, el bajo es la quinta',
+  '4/2': '4/2: tercera inversión de séptima, el bajo es la séptima',
+};
+
+const GUIA_HTML = `
+  <h3>Qué es una cadencia</h3>
+  <p>Es la fórmula armónica con la que termina (o se detiene) una frase musical, como una coma o un punto en un texto. Se forma con los últimos acordes de la frase: casi siempre uno de tensión (dominante o subdominante) que lleva a uno de reposo (tónica).</p>
+
+  <h3>Las tres funciones</h3>
+  <ul>
+    <li><b>Tónica (I):</b> reposo, el lugar de llegada.</li>
+    <li><b>Subdominante (IV, ii):</b> se aleja de la tónica, prepara la dominante.</li>
+    <li><b>Dominante (V, V⁷):</b> tensión, pide resolver en la tónica (por la sensible).</li>
+  </ul>
+  <p style="margin-top:8px;">El esquema básico es tónica → subdominante → dominante → tónica.</p>
+
+  <h3>Tipos de cadencia</h3>
+  <ul>
+    <li><b>Auténtica (V – I):</b> la más conclusiva, el punto final. Es perfecta si los dos acordes están en estado fundamental y la melodía termina en la tónica. Se practica en los niveles 1 y 4.</li>
+    <li><b>Plagal (IV – I):</b> más suave, el "amén". Nivel 1.</li>
+    <li><b>Con 6/4 cadencial (I⁶⁄₄ – V – I):</b> una auténtica adornada con apoyaturas. Nivel 3.</li>
+    <li><b>Semicadencia (termina en V):</b> una pausa que deja la frase en suspenso, como una coma. Aún no hay ejercicios.</li>
+    <li><b>Rota o engañosa (V – vi):</b> el reposo esperado no llega y se sustituye por otro acorde. Aún no hay ejercicios.</li>
+  </ul>
+
+  <h3>Cómo leer el bajo cifrado</h3>
+  <p>Debajo de cada nota del bajo, las cifras indican los intervalos que suenan encima. Sin cifra, el acorde está en estado fundamental. Un 6 indica primera inversión (el bajo es la tercera), y 6/4 segunda inversión (el bajo es la quinta). Con 7, 6/5, 4/3 y 4/2 se escribe V⁷ y sus inversiones.</p>
+
+  <h3>Cómo se practica aquí</h3>
+  <p>Cada ejercicio te da el bajo y tú escribes el tenor, el contralto y el soprano. Al comprobar se revisan las reglas del estilo. Cada fórmula tiene su explicación: la hoja se abre sola la primera vez, y después con el botón "i" de arriba.</p>
+`;
+
+function modeloDe(f){
+  const ej = generarEjercicio(f, 'C');
+  return { ej, sol: resolver(ej, null) };
+}
+
+let teoriaEstado = null;   // { modelo, sonando }
+
+function pintarEjemplo(){
+  const t = teoriaEstado;
+  if(!t) return;
+  $('teoria-ejemplo').innerHTML = '<div class="pauta">' + svgPauta(t.modelo.ej, t.modelo.sol, { sonando:t.sonando, analisis:true, slots:false }) + '</div>';
+}
+
+function abrirTeoria(fid){
+  detenerAudio();
+  const f = fid ? formulaPorId(fid) : null;
+  const cuerpo = $('sheet-cuerpo');
+  if(!f){
+    teoriaEstado = null;
+    $('sheet-titulo').innerHTML = '<div class="sheet-tag">Guía</div>Las cadencias';
+    cuerpo.innerHTML = GUIA_HTML;
+  } else {
+    const t = TEORIA[f.id];
+    teoriaEstado = { modelo: modeloDe(f), sonando: null, fid: f.id };
+    $('sheet-titulo').innerHTML = '<div class="sheet-tag">' + t.tipo + '</div>' + nombreFormula(f);
+    let h = '<h3>Qué es</h3><p>' + t.que + '</p>';
+    h += '<h3>Cómo se usa</h3><p>' + t.uso + '</p>';
+    h += '<h3>Qué cuidar</h3><ul>' + t.cuidar.map(x => '<li>' + x + '</li>').join('') + '</ul>';
+    h += '<h3>Las cifras de este ejercicio</h3><div class="cifras">' +
+      teoriaEstado.modelo.ej.acordes.map(a => '<div class="cifra"><b>' + a.nombre + '</b><span>' + SIGNIFICADO_CIFRA[a.fig] + '</span></div>').join('') + '</div>';
+    h += '<h3>Un ejemplo en Do mayor</h3><div id="teoria-ejemplo"></div>' +
+         '<button class="btn btn-primary" id="b-ejemplo" style="margin-top:12px;">&#9654;&#xFE0E; Escuchar el ejemplo</button>';
+    h += '<p class="helper" style="margin-top:18px;"><a href="#" id="l-guia" style="color:var(--accent);">Guía general de cadencias</a></p>';
+    cuerpo.innerHTML = h;
+    pintarEjemplo();
+    progreso.vistas[f.id] = true;
+    escribir(CLAVE_PROGRESO, progreso);
+  }
+  $('sheet').classList.add('abierta');
+  $('sheet').setAttribute('aria-hidden', 'false');
+  document.body.style.overflow = 'hidden';
+  $('sheet-panel').scrollTop = 0;
+}
+
+function cerrarTeoria(){
+  detenerAudio();
+  teoriaEstado = null;
+  $('sheet').classList.remove('abierta');
+  $('sheet').setAttribute('aria-hidden', 'true');
+  document.body.style.overflow = '';
+}
+
+function escucharEjemplo(){
+  const t = teoriaEstado;
+  const boton = $('b-ejemplo');
+  if(!t || !boton) return;
+  const reposo = () => { boton.innerHTML = '&#9654;&#xFE0E; Escuchar el ejemplo'; };
+  if(t.sonando != null){ detenerAudio(); t.sonando = null; reposo(); pintarEjemplo(); return; }
+  const ok = tocarSecuencia(t.modelo.ej, t.modelo.sol,
+    c => { if(teoriaEstado === t){ t.sonando = c; pintarEjemplo(); } },
+    () => { if(teoriaEstado === t){ t.sonando = null; reposo(); pintarEjemplo(); } });
+  if(!ok) return;
+  t.sonando = 0;
+  boton.innerHTML = '&#9632; Parar';
+  pintarEjemplo();
 }
 
 /* =========================================================
@@ -1212,6 +1544,17 @@ $('t-sol').addEventListener('click', pedirSolucion);
 $('t-ana').addEventListener('click', () => { est.analisis = !est.analisis; pintarPractica(); });
 $('t-nuevo').addEventListener('click', () => empezar(est.ej.formula.id));
 $('btn-salir').addEventListener('click', () => { detenerAudio(); est.sonando = null; mostrarPantalla('home'); pintarMenu(); });
+
+$('btn-teoria').addEventListener('click', () => abrirTeoria(est.ej.formula.id));
+$('card-guia').addEventListener('click', () => abrirTeoria(null));
+$('sheet-cerrar').addEventListener('click', cerrarTeoria);
+$('sheet').addEventListener('click', e => { if(e.target === $('sheet')) cerrarTeoria(); });
+$('sheet').addEventListener('click', e => {
+  if(e.target.closest('#b-ejemplo')) escucharEjemplo();
+  const g = e.target.closest('#l-guia');
+  if(g){ e.preventDefault(); abrirTeoria(null); }
+});
+document.addEventListener('keydown', e => { if(e.key === 'Escape' && $('sheet').classList.contains('abierta')) cerrarTeoria(); });
 
 pintarMenu();
 </script>
