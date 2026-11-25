@@ -14,6 +14,14 @@ App web de un solo archivo (`index.html`, sin dependencias) para practicar teor�
 
 - **Ear Training** — suenan dos notas y reconoces el intervalo (2ª menor a octava; el tritono en el nivel completo). Tres niveles, y puedes elegir si suenan ascendentes, descendentes o juntas. El audio se sintetiza en el navegador con Web Audio (sin archivos de sonido, funciona sin internet); en iPhone hay que desactivar el modo silencio.
 
+## Bajo cifrado (beta)
+
+Página aparte, `bajocifrado.html`, pensada para el celular. Se escribe el tenor, el contralto y el soprano sobre un bajo cifrado dado, con una paleta inferior (acorde y voz con flechas, las 7 notas y la octava). Ejercicios cortos en 4 niveles: estado fundamental, primera inversión, 6/4 cadencial y séptima de dominante, en 9 tonalidades mayores.
+
+- **Comprobar:** revisa registro, voces cruzadas, espaciado, notas ajenas al acorde, acorde completo, duplicaciones, quintas y octavas paralelas (y directas), sensible, séptima y 6/4 cadencial. Toca un problema para verlo resaltado en el pentagrama.
+- **Pista y Solución:** un solucionador busca una realización sin errores que respeta lo ya escrito y la muestra como notas "fantasma" punteadas.
+- Se guardan la sesión y el progreso en el navegador; las claves de la partitura usan Noto Music (SIL OFL 1.1) incrustada.
+
 ## Repaso inteligente
 
 Cada escala, intervalo o posición de la guitarra tiene un peso: fallar lo sube y acertar lo baja. Al armar una sesión, lo que más fallas sale con más frecuencia, y cada menú muestra "Para repasar" con tus puntos débiles.

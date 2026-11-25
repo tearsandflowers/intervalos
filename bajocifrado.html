@@ -1,0 +1,1219 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#12100E">
+<title>Bajo cifrado</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500&family=DM+Sans:wght@400;500&display=swap" rel="stylesheet">
+<style>
+/* Las claves de sol y fa y las alteraciones salen de Noto Music (SIL Open Font License 1.1),
+   reducida a esos cinco símbolos e incrustada para que funcione sin internet. */
+@font-face{font-family:'Claves';src:url(data:font/woff2;base64,d09GMgABAAAAAAwcABAAAAAAF1gAAAvDAAEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAGyAcPAZgAHgINAmcDBEICoY4hVgBNgIkAxgLDgAEIAWELAcgDIEnG9gVERWtLSH4osA2ho2OlaZMY9nSoy63y1iYHt7DX2lRfhuGIoYiovtlioc+lI6QZBae5/X6zn1J5lPKrPip3a3MlqoIdkQLz6atlLw+JH/CyujlByuMChDYB9MnRfdtuK3TB/4fbb3K5h5Ihqu8AGkCZJiQlhJe/5AU1HgnTEU7XXU05r5JjsfTv1d4dComaTs4zUR/GDw418ImdMNoHHdZ5EckyAPi+/8/V9p3/09mSRXIEQuPwlToGpN5M9mT/5MFzsxiZokyU3YAKCTKPZ5JFdRWtasrZKvYulpd4WpzjKJM8mvbCM4T/Y6xmR0DvVH9FR+CADiyz11w+8z1W++7Jh4A23/YxGHbzrkr7lB/tPv3tx/c9te/ffm92/jD8MdPG3/88/fdxcjBZl2d2Pd3GEDNU28d0PfsS6vjD7vhNvsprjlk3J7vvrvZd0DR9P9/dtN/vwGuYt84lYZG+e//BxDujgKilVYRDV2Z0MV2zQHa1R6CaH9dGvuzmsy+4uYUrq7zSWQzSwYxPCa0Gh947xMO3buSfJXDODyqqdI9VnGj+spwTbPZ7v///xtyJM6SfwygAl7lVZHevAv9wW9Sf/Fx5tReVO/qV5qy3uJkuNeEJoudXfchAO8As+UMiNUUQQqWv4ow1IKFCFM13qimJ1xaMDHVmpqbLlKTynD2/j9CxDBsMYz4p//MzjmriUOrc+Eyfe7P9t04p1+apXmCk8xQBjzNX5Y5oONMrAxmwsly1YyzLW6+rdcoDmzx8eN5E3u22q2o38oBppS9T/JUyE+5RGpJBCgtJQDRFfCuqOXBMLLZs5FWThCaIKADIX2laVSJSKAq0RhECxDCj/z8WsrMJDAEke2A5xl40KqAHX+IA5neD4a7Q9gBZ7hbg3kp41DAVIohVD4iwSyVCFu1EiwZRsG1babBiSYnH0IBc4Rjd6tQ6miNedIt1tvzevDJB3MLqG2HoeUxTdj3DZgaURNY8VquWz/slWwlFEG9yGDy7rFlGi7CVfj22AzO38RbNj4nE8BpwM2/AhdgprEd4au0Eta2u+thLkYpruVyt6wulR5LoDO/D7ZKj4YIIuGFEeWJmM2MkgGGl6rVxEWj1Uthr2d6ob1QlvOpJOkted2OFZ0S1pcBl6zImjX7LDd6Xais2xy8hfJoiNhoY7hbLMsyYqugLGFjbwBPs7DhVBgi8Ry2QcROQcw64+ouCxYTF0ZWNZXSYw2SjWuvb76fm18uy/1YrewfQg5N1/Kb7/UlPjTpsLujNhgvPnDGbnKwJEapAIaT1AYVhoOBwQRTtrnZMRMvafpO/E8fbgcDFZTnYeSiNjaFCwPbMJQovYjXLseXUzYAL1uCBlyZEeK4bE7qGs76fmbMSSv6nOgxKCfVO7t27YORO+ZSSo4gx3mDpU2bidFp730l4qwNZo9FXLxA5CoY5CaY5C5Y5CHY5Ck45CW45C145CP4dVq1MAxKPb/5fjZ1oE+vmucjultZwfh6sD4rGt/6DFOHWzK3CSy3es4vMBNiECQgSEGQgSAHQQGCEgQVCGoQNKBGg6qPXMIzKruyFrK4C9+mMHMkdb8bQsET+HaEVGmjoKZsuGRv8JcP1N4JZIx3qdav30q8oSC3Gxtnq/xkMdYz2enyoY1m1XMG1Pqqy29xS3QSTCpd+npSCDcBAPMlu9TMODO5T/xUvTZm+IDpVxTx1+5UHwl4JgBtN7eigdoYEB5Qpw3ACSevT9/v8MYG5es+FJDTfA5xdvzRSJACARdOeIEl98dvXbhBxx77cjrCUj8FbIcJLlPX9ggOJ6KkKH1vWTr1LN/wdIj8DVY8tKekZEJgmqSEvq2r3tRetl1VoPTpNADL6miwbRjHAm+DR7q+412UNDGYlqaOth4ueUNga5wgMGGPrKq05coSqvoAtgz2oreT+CiNEMV09jvqeSJbSiTEJQdIgh196y+NZIWWIYA5a2HuHMzCMEhMq7jDxwRe5k69BQ8DWy/YPklQF3jD699h4t68ZNLbQdMc+4XhKwchf3plhfJXQ76vOyg1dc78w2vWLG/9XsnqS9cInD4WsYCO3fPbW9MsLpvwjSOUoMQ5HKkEpwm7OdUeczr3TBoc6yAWKaoMQpp6MQBdA11ONuBIPdXUq7NLYr7h0doEXhIQYvuv2CQzm8bvZy/2dsmHtKkIRV2KqYMLjzlHxULrrghWP8Qu2QJx3uzlXzrDK905xrP9to8mvi1BG2BYgn8JEpXANyWNBmFl6rSeuDitNFkju4RHUVqKzgA9KlIFUlouAqQL1BlQ9BSZnFNWLgJkC0zP0Rv0AlSdyJVCeXkI5EuhgtWAoFAKFeUhUCxFl4iGVZTCKspgFeWw6ooSvUQll1SVi0C1ELdGPZiyFqasgynrYcoGmLIRpmyCKZth9rboNkKxJ91WZMkG6jLaYNHt1o8VoJs7dBsRlDpNJLtMRN2qoIQ5uhsl6GGUeD0fgaZeQKDQ275JfUxEfauglC36GaXob5RigFGKgXZOg0xEg02khkhWGYYaZRhmlGG4UYYRdk4jTUSjTNQ4OnmT8BtuaAMn6CBLgdnrpWIPcV4erd3AG7afGT2ox4f2XHpAiO0/NgBYfo0GLiC+RprZZOtkp+Gq+tPraG4u9nqwnuDOFWfweG1O6pzT/Dt8z8dXL1nhnbN6f9Ds2TJ3p+O87f4FLEepNpyokWoKyRZ/EVKna3qiKoKDUDl+vo+N12TnWdi66+eE82vWXuX7+HG/munLQ/2kyqhemzVz7lpswvH70wnnEQ8/4Hvfsb0n8J/Jzhf+RuctCV1bNzx7VrfNRrvO3o5zei3gu2FqaCUmd1zfvGc/cw7ETHWaCnO8t10iST7Kq70bfvLE6cexuJwP6FysaPt+OHrLgdNZ2ff9pk9/6TMi3e9c4pL51WuuPCNU/9jx3T5v59xdT87/GTKqfYZF4liQGsv6ZQbh9/Z407PDJi7a5xq8xsb9/VD7V8EBPleWyBzF58deHNDh2Z/XnjL+dffXI2GnaZtLPqcEXS6LnUY4nQ7bQtsdDjv9esQS+QTadjzPa5P4iscIP1yUfvB4Qo+39v7qzHiHisAY+ZjY3gbJ8ocZRmhbZEBLRFJyr2RPyqVPUbqbnZFITteazCkKfaSeSCE1iRqZk0owLT8qKS/arodDymJ3N0N2GplCFiwuyU+b22NwTmaDicIzvDIlsjwP19ORvRzycOyw48SvTD1Iq42OUxseb/l2zCdgCn76yntLtaz+oKSHSitJed8/eFpHUeOWPEtES1dkvOPwKquMaUsbYqL+9e6hGUoHS/MjTLh9Tcz6S34O37mCN2UXuPGvXLZZTUaFksGWglZTVGJ3S3R7XIk5e01kSl36/JJuQWMO27p/pva//va4CAHAET8ba1Rm0lahgyHFJh8vF/6XRwlmTSktSE9Q8lmZSdtDAs0kIWMakwABSiwRsTM1JTbF33g22kdA4HnQzS8g8P6Tn+7v8H8wu8kyEgQLCgCBf33U3BQ9Y+ILNwNZVD2lJGEUx0ZR2ep4tuZSCiqXzAsgCYeFIpIEfsAEV2c0UNKe4YgS3UHXrYEdgjczdihc2b1DI59dO3Si+bTDoF58d1iIlOaVdyVXJlDFhi039syYMOUIYITAiBGMTKYMAMlsOLIBSGXPhjkDHUm7hRPHtNrwjgOAilX0UFuYUMBNdQ0zoJVvb+GpULWiBc2M1WjVGqgDU03ZVQdm11OCi5Iu22MGJvtASxr2yBggzJ5mgokhUAawyc9vbsLllxZwM2hVDt09hJW8EUTmK87ELnnNe0sUxtpnLDm76gMNuVJBhrnk/g7VSl7ciapDOETu1lWKtyzK5d0+5ASBFHRccDbHtc1xmQzf9zhcT6/fiGRRwwb05XeQMRvBrvKgC4LEB12HRPbiWOc5cs61rzzJLAfFScnBgElPgAbmARkaMTh3AzUiF03dQpXcwaPmm6kGj43KNrSLNwfR85UVmTd4M95ma4u4Jh5HtqHoCw8omnmI3W3BNAEAAA==) format('woff2');}
+
+:root{
+  --bg:#12100E;
+  --surface:#1C1916;
+  --surface-2:#252118;
+  --text:#EFE9E0;
+  --muted:rgba(239,233,224,.55);
+  --faint:rgba(239,233,224,.32);
+  --accent:#F08A3C;
+  --accent-soft:rgba(240,138,60,.15);
+  --error:#E5736A;
+  --ok:#7EC8A4;
+  --divider:rgba(239,233,224,.12);
+  --voz-s:#F08A3C;
+  --voz-a:#7EC8A4;
+  --voz-t:#7DB4F0;
+  --radius:12px;
+  --radius-lg:16px;
+  --serif:'Fraunces',Georgia,serif;
+  --sans:'DM Sans',-apple-system,BlinkMacSystemFont,sans-serif;
+  box-sizing:border-box;
+}
+*,*::before,*::after{box-sizing:inherit;}
+html,body{height:100%;}
+body{margin:0;background:var(--bg);color:var(--text);font-family:var(--sans);-webkit-font-smoothing:antialiased;
+  -webkit-tap-highlight-color:transparent;}
+button{font-family:var(--sans);color:var(--text);}
+button:focus-visible{outline:2px solid var(--accent);outline-offset:2px;}
+
+.app{max-width:440px;margin:0 auto;min-height:100%;display:flex;flex-direction:column;
+  padding:calc(24px + env(safe-area-inset-top,0px)) 16px 28px;}
+body.en-practica .app{padding-bottom:calc(250px + env(safe-area-inset-bottom,0px));}
+.screen{display:none;flex:1;flex-direction:column;}
+.screen.active{display:flex;}
+
+.title{font-family:var(--serif);font-weight:400;font-size:34px;letter-spacing:-.02em;line-height:1.1;margin:0;}
+.title-sm{font-size:24px;}
+.subtitle{font-size:14px;color:var(--muted);line-height:1.5;margin:8px 0 0;}
+.section-label{font-size:11px;font-weight:500;color:var(--muted);text-transform:uppercase;letter-spacing:.1em;margin:26px 0 10px;}
+.helper{font-size:12px;color:var(--muted);line-height:1.5;margin:6px 0 0;}
+.header-row{display:flex;align-items:center;gap:12px;}
+.icon-btn{width:38px;height:38px;flex-shrink:0;border-radius:var(--radius);border:1px solid var(--divider);
+  background:transparent;font-size:17px;line-height:1;cursor:pointer;}
+.icon-btn:hover{background:rgba(239,233,224,.06);}
+
+/* ---- Menú ---- */
+.chips{display:flex;flex-wrap:wrap;gap:8px;}
+.chip{height:38px;padding:0 14px;border-radius:10px;border:1px solid transparent;background:var(--surface);
+  font-size:14px;cursor:pointer;transition:background .15s,border-color .15s;}
+.chip.selected{background:var(--accent-soft);border-color:var(--accent);color:var(--accent);}
+.cards{display:flex;flex-direction:column;gap:10px;}
+.card{background:var(--surface);border:1px solid transparent;border-radius:var(--radius-lg);padding:14px 16px;text-align:left;
+  cursor:pointer;display:flex;align-items:center;gap:12px;transition:background .15s,border-color .15s;}
+.card:hover{background:var(--surface-2);border-color:var(--divider);}
+.card-main{flex:1;min-width:0;}
+.card-name{font-family:var(--serif);font-size:20px;}
+.card-desc{font-size:12px;color:var(--muted);margin-top:3px;line-height:1.4;}
+.card-ok{font-size:12px;color:var(--ok);white-space:nowrap;}
+.card-continue{border-color:var(--accent);background:var(--accent-soft);}
+details{margin-top:24px;border-top:1px solid var(--divider);padding-top:14px;}
+summary{font-size:13px;color:var(--muted);cursor:pointer;}
+details ul{margin:10px 0 0;padding-left:18px;font-size:13px;color:var(--muted);line-height:1.6;}
+
+/* ---- Práctica ---- */
+.practica-top{display:flex;align-items:center;gap:12px;}
+.practica-info{flex:1;min-width:0;}
+.practica-nombre{font-family:var(--serif);font-size:20px;line-height:1.15;}
+.practica-clave{font-size:12px;color:var(--muted);margin-top:2px;}
+.toolbar{display:flex;gap:8px;margin-top:14px;}
+.tool{flex:1;height:36px;border-radius:10px;border:1px solid var(--divider);background:transparent;font-size:13px;cursor:pointer;}
+.tool.on{background:var(--accent-soft);border-color:var(--accent);color:var(--accent);}
+.tool:hover{background:rgba(239,233,224,.06);}
+.pauta{margin-top:10px;background:var(--surface);border-radius:var(--radius-lg);padding:6px 4px 2px;}
+.pauta svg{display:block;width:100%;height:auto;touch-action:manipulation;}
+.legend{display:flex;gap:14px;justify-content:center;font-size:11px;color:var(--muted);margin-top:8px;}
+.legend i{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:5px;vertical-align:-1px;}
+
+.resultado{margin-top:14px;display:flex;flex-direction:column;gap:8px;}
+.res-titulo{font-family:var(--serif);font-size:20px;}
+.res-titulo.ok{color:var(--ok);}
+.res-titulo.mal{color:var(--error);}
+.res-sub{font-size:13px;color:var(--muted);line-height:1.5;}
+.issue{text-align:left;width:100%;border-radius:var(--radius);border:1px solid var(--divider);background:var(--surface);
+  padding:10px 12px;font-size:13px;line-height:1.45;cursor:pointer;display:flex;gap:10px;}
+.issue .marca{flex-shrink:0;width:8px;height:8px;border-radius:50%;margin-top:6px;}
+.issue.error .marca{background:var(--error);}
+.issue.aviso .marca{background:#E8C06A;}
+.issue.sel{border-color:var(--accent);}
+.issue small{display:block;color:var(--muted);margin-top:2px;}
+.btn{width:100%;height:46px;border-radius:var(--radius);font-family:var(--serif);font-size:16px;font-weight:500;cursor:pointer;}
+.btn-primary{border:1px solid var(--accent);background:transparent;color:var(--accent);}
+.btn-primary:hover{background:var(--accent-soft);}
+
+/* ---- Paleta inferior ---- */
+.paleta{display:none;position:fixed;left:0;right:0;bottom:0;z-index:10;background:var(--surface);border-top:1px solid var(--divider);
+  padding:10px 12px calc(10px + env(safe-area-inset-bottom,0px));}
+body.en-practica .paleta{display:block;}
+.paleta-in{max-width:440px;margin:0 auto;display:flex;flex-direction:column;gap:8px;}
+.fila{display:flex;gap:8px;align-items:center;}
+.nav{flex:1;display:flex;align-items:center;gap:6px;background:var(--surface-2);border-radius:var(--radius);padding:3px;}
+.nav button{width:36px;height:36px;border-radius:9px;border:none;background:transparent;font-size:20px;cursor:pointer;}
+.nav button:active{background:rgba(239,233,224,.1);}
+.nav-txt{flex:1;text-align:center;font-size:13px;line-height:1.2;}
+.nav-txt b{font-weight:500;}
+.nav-txt .punto{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:6px;vertical-align:0;}
+.notas{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;}
+.nota-btn{height:50px;border-radius:10px;border:1px solid transparent;background:var(--surface-2);font-family:var(--serif);
+  font-size:clamp(13px,3.6vw,16px);font-weight:500;cursor:pointer;padding:0;}
+.nota-btn:active{background:var(--accent-soft);border-color:var(--accent);}
+.mini{width:44px;height:42px;border-radius:10px;border:1px solid var(--divider);background:transparent;font-size:17px;cursor:pointer;flex-shrink:0;}
+.mini:active{background:rgba(239,233,224,.1);}
+.mini:disabled{opacity:.35;}
+.grande{flex:1;height:42px;border-radius:10px;font-family:var(--serif);font-size:14px;font-weight:500;cursor:pointer;white-space:nowrap;padding:0 4px;}
+.grande.sec{border:1px solid var(--divider);background:transparent;}
+.grande.pri{border:1px solid var(--accent);background:transparent;color:var(--accent);}
+.grande.pri:active{background:var(--accent-soft);}
+
+/* ---- Pentagrama ---- */
+.p-linea{stroke:var(--faint);stroke-width:1;}
+.p-barra{stroke:var(--muted);stroke-width:1.2;}
+.p-ledger{stroke:var(--muted);stroke-width:1.2;}
+.p-clave{font-family:'Claves','Noto Music',serif;fill:var(--text);}
+.p-alt{font-family:'Claves','Noto Music',serif;fill:var(--text);}
+.p-fig{fill:var(--muted);font-family:var(--sans);font-size:12px;text-anchor:middle;}
+.p-romano{fill:var(--accent);font-family:var(--serif);font-size:13px;text-anchor:middle;}
+.p-banda{fill:var(--accent-soft);}
+.p-banda.suena{fill:rgba(126,200,164,.16);}
+.p-hit{fill:transparent;cursor:pointer;}
+.p-slot{cursor:pointer;}
+</style>
+</head>
+<body>
+
+<div class="app">
+
+  <!-- ============ MENÚ ============ -->
+  <section id="screen-home" class="screen active">
+    <h1 class="title">Bajo cifrado</h1>
+    <p class="subtitle">Escribe el tenor, el contralto y el soprano sobre un bajo cifrado. Comprueba tus reglas y, si lo necesitas, pide una pista o la solución.</p>
+
+    <div id="continuar" style="display:none;margin-top:22px;"></div>
+
+    <div class="section-label">Tonalidad</div>
+    <div class="chips" id="chips-ton"></div>
+
+    <div id="niveles"></div>
+
+    <details>
+      <summary>Qué reglas se comprueban</summary>
+      <ul>
+        <li>Cada voz dentro de su registro y sin cruzarse; entre voces vecinas, no más de una octava.</li>
+        <li>Solo notas del acorde, sin omitir la tercera, y con la duplicación correcta (nunca la sensible ni la séptima).</li>
+        <li>Sin quintas ni octavas paralelas; avisos de quintas y octavas directas entre las voces externas.</li>
+        <li>La sensible sube a la tónica, la séptima baja por grado, y el 6/4 cadencial resuelve a la dominante.</li>
+      </ul>
+    </details>
+
+    <p class="helper" style="margin-top:22px;"><a href="index.html" style="color:var(--accent);">← Práctica musical</a> (escalas, intervalos, guitarra y oído)</p>
+  </section>
+
+  <!-- ============ PRÁCTICA ============ -->
+  <section id="screen-practica" class="screen">
+    <div class="practica-top">
+      <button class="icon-btn" id="btn-salir" aria-label="Volver al menú">&#8249;</button>
+      <div class="practica-info">
+        <div class="practica-nombre" id="p-nombre"></div>
+        <div class="practica-clave" id="p-clave"></div>
+      </div>
+    </div>
+
+    <div class="toolbar">
+      <button class="tool" id="t-pista">Pista</button>
+      <button class="tool" id="t-sol">Solución</button>
+      <button class="tool" id="t-ana">Análisis</button>
+      <button class="tool" id="t-nuevo">Nuevo</button>
+    </div>
+
+    <div class="pauta" id="pauta"></div>
+    <div class="legend">
+      <span><i style="background:var(--voz-s)"></i>Soprano</span>
+      <span><i style="background:var(--voz-a)"></i>Contralto</span>
+      <span><i style="background:var(--voz-t)"></i>Tenor</span>
+    </div>
+
+    <div class="resultado" id="resultado" aria-live="polite"></div>
+  </section>
+</div>
+
+<!-- ============ PALETA INFERIOR ============ -->
+<div class="paleta" id="paleta">
+  <div class="paleta-in">
+    <div class="fila">
+      <div class="nav">
+        <button id="n-acorde-prev" aria-label="Acorde anterior">&#8249;</button>
+        <div class="nav-txt" id="n-acorde"></div>
+        <button id="n-acorde-next" aria-label="Acorde siguiente">&#8250;</button>
+      </div>
+      <div class="nav">
+        <button id="n-voz-prev" aria-label="Voz anterior">&#8249;</button>
+        <div class="nav-txt" id="n-voz"></div>
+        <button id="n-voz-next" aria-label="Voz siguiente">&#8250;</button>
+      </div>
+    </div>
+    <div class="notas" id="notas"></div>
+    <div class="fila">
+      <button class="mini" id="b-arriba" aria-label="Una octava arriba">&#9650;</button>
+      <button class="mini" id="b-abajo" aria-label="Una octava abajo">&#9660;</button>
+      <button class="mini" id="b-borrar" aria-label="Borrar la nota">&#9003;</button>
+      <button class="mini" id="b-deshacer" aria-label="Deshacer">&#8630;</button>
+      <button class="grande sec" id="b-escuchar">&#9654;&#xFE0E; Escuchar</button>
+      <button class="grande pri" id="b-comprobar">Comprobar</button>
+    </div>
+  </div>
+</div>
+
+<script>
+'use strict';
+const $ = id => document.getElementById(id);
+
+/* =========================================================
+   MÚSICA: notas, tonalidades y acordes
+   Las notas se guardan como números MIDI (Do4 = 60).
+   ========================================================= */
+
+const LETRAS = ['Do','Re','Mi','Fa','Sol','La','Si'];
+const PC_NAT = [0, 2, 4, 5, 7, 9, 11];        // altura de cada letra natural
+const ESC_MAYOR = [0, 2, 4, 5, 7, 9, 11];
+const SIMBOLO = { '-1':'♭', '0':'', '1':'♯' };
+const mod12 = x => ((x % 12) + 12) % 12;
+
+// Una tonalidad mayor: para cada grado, su letra, su alteración y su altura
+function crearTonalidad(id, nombre, letra, acc){
+  const tonica = mod12(PC_NAT[letra] + acc);
+  const grados = ESC_MAYOR.map((s, d) => {
+    const L = (letra + d) % 7;
+    const pc = mod12(tonica + s);
+    let a = pc - PC_NAT[L];
+    if(a > 6) a -= 12;
+    if(a < -6) a += 12;
+    return { letra:L, acc:a, pc };
+  });
+  return {
+    id, nombre, tonica, grados,
+    nSost: grados.filter(g => g.acc === 1).length,
+    nBem:  grados.filter(g => g.acc === -1).length,
+    sensiblePc: grados[6].pc
+  };
+}
+
+const TONALIDADES = [
+  crearTonalidad('C',  'Do mayor',   0,  0),
+  crearTonalidad('G',  'Sol mayor',  4,  0),
+  crearTonalidad('D',  'Re mayor',   1,  0),
+  crearTonalidad('A',  'La mayor',   5,  0),
+  crearTonalidad('E',  'Mi mayor',   2,  0),
+  crearTonalidad('F',  'Fa mayor',   3,  0),
+  crearTonalidad('Bb', 'Si♭ mayor',  6, -1),
+  crearTonalidad('Eb', 'Mi♭ mayor',  2, -1),
+  crearTonalidad('Ab', 'La♭ mayor',  5, -1),
+];
+const tonPorId = id => TONALIDADES.find(t => t.id === id);
+
+const CROMATICA = ['Do','Do♯','Re','Re♯','Mi','Fa','Fa♯','Sol','Sol♯','La','La♯','Si'];
+function nombreNota(m, ton){
+  const g = ton.grados.find(x => x.pc === mod12(m));
+  return g ? LETRAS[g.letra] + SIMBOLO[g.acc] : CROMATICA[mod12(m)];
+}
+
+// Posición diatónica de una nota (octava * 7 + letra), para dibujarla en el pentagrama
+function posicion(m, ton){
+  const g = ton.grados.find(x => x.pc === mod12(m));
+  if(g){
+    const oct = Math.floor((m - g.acc - PC_NAT[g.letra]) / 12) - 1;
+    return oct * 7 + g.letra;
+  }
+  const pc = mod12(m);
+  let L = 0;
+  PC_NAT.forEach((p, i) => { if(p <= pc) L = i; });
+  return (Math.floor(m / 12) - 1) * 7 + L;
+}
+
+/* ---- Voces ---- */
+const VOCES = ['S', 'A', 'T', 'B'];
+const ORDEN_ENTRADA = ['T', 'A', 'S'];                     // de la más grave a la más aguda
+const NOMBRE_VOZ = { S:'soprano', A:'contralto', T:'tenor', B:'bajo' };
+const NOMBRE_VOZ_MAY = { S:'Soprano', A:'Contralto', T:'Tenor', B:'Bajo' };
+const COLOR_VOZ = { S:'var(--voz-s)', A:'var(--voz-a)', T:'var(--voz-t)', B:'var(--text)' };
+const RANGO = { S:[60, 79], A:[55, 74], T:[48, 67] };
+const TXT_RANGO = { S:'Do4–Sol5', A:'Sol3–Re5', T:'Do3–Sol4' };
+const BAJO_MIN = 40, BAJO_MAX = 60;
+
+/* ---- Acordes a partir del bajo y su cifra ---- */
+// pasoRaiz: a qué intervalo sobre el bajo está la fundamental del acorde
+const CIFRAS = {
+  '':    { tipo:'triada',  pasoRaiz:1, texto:'' },
+  '6':   { tipo:'triada',  pasoRaiz:6, texto:'⁶' },
+  '6/4': { tipo:'triada',  pasoRaiz:4, texto:'⁶₄' },
+  '7':   { tipo:'septima', pasoRaiz:1, texto:'⁷' },
+  '6/5': { tipo:'septima', pasoRaiz:6, texto:'⁶₅' },
+  '4/3': { tipo:'septima', pasoRaiz:4, texto:'⁴₃' },
+  '4/2': { tipo:'septima', pasoRaiz:2, texto:'⁴₂' },
+};
+const ROMANOS = ['I', 'ii', 'iii', 'IV', 'V', 'vi', 'vii°'];
+
+function crearAcorde(ton, g, fig, bajo){
+  const info = CIFRAS[fig];
+  const raiz = (g + info.pasoRaiz - 1) % 7;
+  const degs = [raiz, (raiz + 2) % 7, (raiz + 4) % 7];
+  if(info.tipo === 'septima') degs.push((raiz + 6) % 7);
+  const pc = d => ton.grados[d].pc;
+  return {
+    g, fig, tipo:info.tipo, bajo,
+    raiz, degs,
+    pcs: new Set(degs.map(pc)),
+    pcRaiz: pc(raiz), pcTercera: pc((raiz + 2) % 7), pcQuinta: pc((raiz + 4) % 7),
+    pcSeptima: info.tipo === 'septima' ? pc((raiz + 6) % 7) : null,
+    nombre: ROMANOS[raiz] + info.texto
+  };
+}
+
+/* =========================================================
+   EJERCICIOS: fórmulas cortas (cadencias y progresiones)
+   Cada acorde es [grado del bajo (0 = tónica), cifra].
+   ========================================================= */
+
+const NIVELES = [
+  { id:1, nombre:'Estado fundamental' },
+  { id:2, nombre:'Primera inversión' },
+  { id:3, nombre:'6/4 cadencial' },
+  { id:4, nombre:'Séptima de dominante' },
+];
+
+const FORMULAS = [
+  { id:'1a', nivel:1, desc:'Cadencia auténtica',            acordes:[[0,''],[4,''],[0,'']] },
+  { id:'1b', nivel:1, desc:'Cadencia plagal',               acordes:[[0,''],[3,''],[0,'']] },
+  { id:'1c', nivel:1, desc:'Progresión completa',           acordes:[[0,''],[3,''],[4,''],[0,'']] },
+  { id:'1d', nivel:1, desc:'Con el sexto grado',            acordes:[[0,''],[5,''],[4,''],[0,'']] },
+  { id:'2a', nivel:2, desc:'Dominante en primera inversión',acordes:[[0,''],[6,'6'],[0,'']] },
+  { id:'2b', nivel:2, desc:'Empieza con I en primera inversión', acordes:[[2,'6'],[3,''],[4,''],[0,'']] },
+  { id:'2c', nivel:2, desc:'Subdominante en primera inversión',  acordes:[[0,''],[5,'6'],[4,''],[0,'']] },
+  { id:'2d', nivel:2, desc:'Cinco acordes con inversión',   acordes:[[0,''],[2,'6'],[3,''],[4,''],[0,'']] },
+  { id:'3a', nivel:3, desc:'Cadencia con 6/4 cadencial',    acordes:[[0,''],[4,'6/4'],[4,''],[0,'']] },
+  { id:'3b', nivel:3, desc:'IV antes del 6/4',              acordes:[[0,''],[3,''],[4,'6/4'],[4,''],[0,'']] },
+  { id:'4a', nivel:4, desc:'Dominante con séptima',         acordes:[[0,''],[4,'7'],[0,'']] },
+  { id:'4b', nivel:4, desc:'IV – V⁷ – I',                   acordes:[[0,''],[3,''],[4,'7'],[0,'']] },
+  { id:'4c', nivel:4, desc:'Primera inversión de V⁷',       acordes:[[0,''],[6,'6/5'],[0,'']] },
+  { id:'4d', nivel:4, desc:'Segunda inversión de V⁷',       acordes:[[0,''],[1,'4/3'],[0,'']] },
+  { id:'4e', nivel:4, desc:'Tercera inversión de V⁷',       acordes:[[0,''],[3,'4/2'],[2,'6']] },
+];
+
+function nombreFormula(f){
+  // I – V – I (los romanos no dependen de la tonalidad)
+  const ton = TONALIDADES[0];
+  return f.acordes.map(([g, fig]) => crearAcorde(ton, g, fig, 48).nombre).join(' – ');
+}
+const formulaPorId = id => FORMULAS.find(f => f.id === id);
+
+// Crea el ejercicio: ubica el bajo en su registro y comprueba que tenga solución
+function generarEjercicio(formula, tonId){
+  for(let intento = 0; intento < 30; intento++){
+    const ton = tonId ? tonPorId(tonId) : TONALIDADES[Math.floor(Math.random() * TONALIDADES.length)];
+    const bajos = [];
+    let prev = null;
+    formula.acordes.forEach(([g]) => {
+      const pc = ton.grados[g].pc;
+      let m;
+      if(prev === null){
+        m = 41 + mod12(pc - 41);                 // tónica entre Fa2 y Mi3
+      } else {
+        let d = mod12(pc - prev);
+        if(d > 6) d -= 12;                        // el octavo más cercano
+        m = prev + d;
+      }
+      while(m > BAJO_MAX) m -= 12;
+      while(m < BAJO_MIN) m += 12;
+      bajos.push(m);
+      prev = m;
+    });
+    const ej = construirEjercicio(formula, ton, bajos);
+    if(resolver(ej, null)) return ej;
+  }
+  return null;
+}
+
+function construirEjercicio(formula, ton, bajos){
+  return {
+    formula, ton, n: formula.acordes.length,
+    acordes: formula.acordes.map(([g, fig], i) => crearAcorde(ton, g, fig, bajos[i]))
+  };
+}
+
+/* =========================================================
+   REGLAS: revisión de cada acorde y de cada paso entre acordes
+   Cada problema trae: regla, nivel ('error' o 'aviso'), acordes
+   (columnas), voces y un mensaje.
+   ========================================================= */
+
+function problema(out, regla, nivel, cols, voces, msg){ out.push({ regla, nivel, cols, voces, msg }); }
+
+// Un acorde con sus cuatro voces: { S, A, T, B }
+function voces(ej, voz, c){
+  const v = voz[c] || {};
+  return { S:v.S ?? null, A:v.A ?? null, T:v.T ?? null, B:ej.acordes[c].bajo };
+}
+
+function revisarColumna(ej, c, V, out){
+  const ac = ej.acordes[c], ton = ej.ton;
+  const pre = 'Acorde ' + (c + 1) + ' (' + ac.nombre + '): ';
+
+  ['S', 'A', 'T'].forEach(v => {
+    const m = V[v];
+    if(m == null) return;
+    if(m < RANGO[v][0] || m > RANGO[v][1])
+      problema(out, 'tesitura', 'error', [c], [v], pre + 'el ' + NOMBRE_VOZ[v] + ' (' + nombreNota(m, ton) + ') está fuera de su registro (' + TXT_RANGO[v] + ').');
+    if(!ac.pcs.has(mod12(m)))
+      problema(out, 'ajena', 'error', [c], [v], pre + nombreNota(m, ton) + ' (' + NOMBRE_VOZ[v] + ') no pertenece al acorde.');
+  });
+
+  // Voces vecinas (entre las que están escritas): sin cruces, sin pasar de una octava
+  const escritas = VOCES.filter(v => V[v] != null);
+  for(let i = 0; i + 1 < escritas.length; i++){
+    const arr = escritas[i], aba = escritas[i + 1];
+    if(V[arr] < V[aba])
+      problema(out, 'cruce', 'error', [c], [arr, aba], pre + 'el ' + NOMBRE_VOZ[arr] + ' queda por debajo del ' + NOMBRE_VOZ[aba] + ' (voces cruzadas).');
+    else if(V[arr] === V[aba])
+      problema(out, 'unisono', 'aviso', [c], [arr, aba], pre + 'el ' + NOMBRE_VOZ[arr] + ' y el ' + NOMBRE_VOZ[aba] + ' cantan la misma nota (unísono).');
+  }
+  [['S', 'A'], ['A', 'T']].forEach(([a, b]) => {
+    if(V[a] != null && V[b] != null && V[a] - V[b] > 12)
+      problema(out, 'espaciado', 'error', [c], [a, b], pre + 'entre el ' + NOMBRE_VOZ[a] + ' y el ' + NOMBRE_VOZ[b] + ' hay más de una octava.');
+  });
+
+  // Lo que sigue necesita las cuatro voces
+  if(V.S == null || V.A == null || V.T == null) return;
+
+  const cuentas = {};
+  VOCES.forEach(v => { const pc = mod12(V[v]); cuentas[pc] = (cuentas[pc] || 0) + 1; });
+  const cnt = pc => cuentas[pc] || 0;
+
+  const faltan = [];
+  if(!cnt(ac.pcRaiz)) faltan.push('la fundamental');
+  if(!cnt(ac.pcTercera)) faltan.push('la tercera');
+  if(!cnt(ac.pcQuinta)) faltan.push('la quinta');
+  if(ac.pcSeptima != null && !cnt(ac.pcSeptima)) faltan.push('la séptima');
+
+  // Se puede omitir la quinta: en una tríada si triplicas la fundamental; en V⁷ si la duplicas
+  let omiteBien = false;
+  if(faltan.length === 1 && faltan[0] === 'la quinta'){
+    if(ac.tipo === 'triada' && cnt(ac.pcRaiz) === 3) omiteBien = true;
+    if(ac.fig === '7' && cnt(ac.pcRaiz) === 2) omiteBien = true;
+  }
+  if(faltan.length && !omiteBien)
+    problema(out, 'completo', 'error', [c], ['S', 'A', 'T'], pre + 'falta ' + faltan.join(' y ') + '.' + (faltan.includes('la tercera') ? ' La tercera nunca se omite.' : ''));
+
+  // Duplicaciones
+  Object.keys(cuentas).forEach(k => {
+    const pc = Number(k);
+    if(cuentas[k] < 2) return;
+    if(pc === ton.sensiblePc)
+      problema(out, 'duplicacion', 'error', [c], ['S', 'A', 'T'], pre + 'se duplica la sensible (' + nombreNota(pc, ton) + '). Nunca se duplica.');
+    else if(ac.pcSeptima != null && pc === ac.pcSeptima)
+      problema(out, 'duplicacion', 'error', [c], ['S', 'A', 'T'], pre + 'se duplica la séptima del acorde (' + nombreNota(pc, ton) + '). Nunca se duplica.');
+  });
+  if(ac.tipo === 'triada'){
+    const dup = Object.keys(cuentas).filter(k => cuentas[k] > 1).map(Number).filter(pc => pc !== ton.sensiblePc);
+    if(ac.fig === '' && dup.some(pc => pc !== ac.pcRaiz))
+      problema(out, 'duplicacion', 'aviso', [c], ['S', 'A', 'T'], pre + 'en estado fundamental lo habitual es duplicar la fundamental.');
+    if(ac.fig === '6/4' && dup.some(pc => pc !== mod12(ac.bajo)))
+      problema(out, 'duplicacion', 'aviso', [c], ['S', 'A', 'T'], pre + 'en un acorde de 6/4 lo habitual es duplicar el bajo.');
+  }
+}
+
+// ¿es un descenso por grado desde "de" hasta "a", terminando en el grado anterior a "grado"?
+function bajaPorGrado(ton, de, a, grado){
+  const d = de - a;
+  return (d === 1 || d === 2) && mod12(a) === ton.grados[(grado + 6) % 7].pc;
+}
+
+function revisarPar(ej, c, A, B, out){
+  const ac = ej.acordes[c], sg = ej.acordes[c + 1], ton = ej.ton;
+  const pre = 'Acordes ' + (c + 1) + '–' + (c + 2) + ': ';
+  const cols = [c, c + 1];
+
+  // Quintas y octavas paralelas, entre cualquier pareja de voces
+  for(let i = 0; i < 4; i++) for(let j = i + 1; j < 4; j++){
+    const hi = VOCES[i], lo = VOCES[j];
+    const a1 = A[hi], b1 = A[lo], a2 = B[hi], b2 = B[lo];
+    if(a1 == null || b1 == null || a2 == null || b2 == null) continue;
+    if(a1 === a2 || b1 === b2) continue;                      // una voz se queda: no es paralelo
+    if((a2 - a1) * (b2 - b1) <= 0) continue;                  // no van en el mismo sentido
+    const i1 = mod12(a1 - b1), i2 = mod12(a2 - b2);
+    if(i1 === i2 && i1 === 7)
+      problema(out, 'paralelas', 'error', cols, [hi, lo], pre + 'quintas paralelas entre el ' + NOMBRE_VOZ[hi] + ' y el ' + NOMBRE_VOZ[lo] + '.');
+    else if(i1 === i2 && i1 === 0)
+      problema(out, 'paralelas', 'error', cols, [hi, lo], pre + 'octavas paralelas entre el ' + NOMBRE_VOZ[hi] + ' y el ' + NOMBRE_VOZ[lo] + '.');
+  }
+
+  // Directas entre las voces externas: soprano y bajo llegan a 5ª u 8ª en el mismo sentido y el soprano salta
+  if(A.S != null && B.S != null){
+    const mismo = (B.S - A.S) * (B.B - A.B) > 0;
+    const llegada = mod12(B.S - B.B);
+    const eraIgual = mod12(A.S - A.B) === llegada;
+    if(mismo && (llegada === 7 || llegada === 0) && !eraIgual && Math.abs(B.S - A.S) > 2)
+      problema(out, 'directas', 'aviso', cols, ['S', 'B'], pre + (llegada === 7 ? 'quinta' : 'octava') + ' directa entre el soprano y el bajo: el soprano llega saltando.');
+  }
+
+  // Saltos y superposiciones
+  ['S', 'A', 'T'].forEach(v => {
+    if(A[v] == null || B[v] == null) return;
+    const d = Math.abs(B[v] - A[v]);
+    if(d > 12) problema(out, 'salto', 'error', cols, [v], pre + 'el ' + NOMBRE_VOZ[v] + ' da un salto mayor que una octava.');
+    else if(d > 9) problema(out, 'salto', 'aviso', cols, [v], pre + 'el ' + NOMBRE_VOZ[v] + ' da un salto muy grande.');
+  });
+  [['S', 'A'], ['A', 'T'], ['T', 'B']].forEach(([arr, aba]) => {
+    if(A[arr] == null || A[aba] == null || B[arr] == null || B[aba] == null) return;
+    if(B[aba] > A[arr] || B[arr] < A[aba])
+      problema(out, 'superposicion', 'aviso', cols, [arr, aba], pre + 'el ' + NOMBRE_VOZ[arr] + ' y el ' + NOMBRE_VOZ[aba] + ' se superponen (una voz pasa a donde estaba la otra).');
+  });
+
+  // La sensible, cuando el acorde siguiente es de tónica, sube a la tónica
+  if(ac.pcs.has(ton.sensiblePc) && sg.raiz === 0){
+    ['S', 'A', 'T'].forEach(v => {
+      if(A[v] == null || B[v] == null || mod12(A[v]) !== ton.sensiblePc) return;
+      const sube = B[v] === A[v] + 1;
+      if(v === 'S' && !sube)
+        problema(out, 'sensible', 'error', cols, [v], pre + 'la sensible del soprano debe subir a la tónica.');
+      else if(v !== 'S' && !sube && !(mod12(B[v]) === ton.grados[4].pc && B[v] < A[v]))
+        problema(out, 'sensible', 'aviso', cols, [v], pre + 'la sensible del ' + NOMBRE_VOZ[v] + ' debería subir a la tónica (una voz interna también puede bajar a la quinta).');
+    });
+  }
+
+  // La séptima del acorde baja por grado
+  if(ac.pcSeptima != null){
+    const gradoSeptima = (ac.raiz + 6) % 7;
+    ['S', 'A', 'T'].forEach(v => {
+      if(A[v] == null || B[v] == null || mod12(A[v]) !== ac.pcSeptima) return;
+      if(!bajaPorGrado(ton, A[v], B[v], gradoSeptima))
+        problema(out, 'septima', 'error', cols, [v], pre + 'la séptima del acorde (' + nombreNota(A[v], ton) + ', ' + NOMBRE_VOZ[v] + ') debe bajar por grado.');
+    });
+  }
+
+  // 6/4 cadencial: la 4ª y la 6ª sobre el bajo bajan por grado
+  if(ac.fig === '6/4'){
+    ['S', 'A', 'T'].forEach(v => {
+      if(A[v] == null || B[v] == null) return;
+      const pc = mod12(A[v]);
+      const grado = pc === ac.pcRaiz ? ac.raiz : pc === ac.pcTercera ? (ac.raiz + 2) % 7 : null;
+      if(grado === null) return;
+      if(!bajaPorGrado(ton, A[v], B[v], grado))
+        problema(out, 'sexta-cuarta', 'error', cols, [v], pre + 'en el 6/4 cadencial, el ' + NOMBRE_VOZ[v] + ' (' + nombreNota(A[v], ton) + ') debe bajar por grado hacia el acorde de dominante.');
+    });
+  }
+}
+
+function analizar(ej, voz){
+  const out = [];
+  let completo = true;
+  for(let c = 0; c < ej.n; c++){
+    const V = voces(ej, voz, c);
+    if(V.S == null || V.A == null || V.T == null) completo = false;
+    revisarColumna(ej, c, V, out);
+    if(c + 1 < ej.n) revisarPar(ej, c, V, voces(ej, voz, c + 1), out);
+  }
+  const errores = out.filter(x => x.nivel === 'error').length;
+  return { issues: out, completo, errores, avisos: out.length - errores, ok: completo && errores === 0 };
+}
+
+/* =========================================================
+   SOLUCIONADOR (el "fantasma")
+   Prueba todas las posiciones de cada acorde y busca el camino
+   de menor movimiento que no rompe ninguna regla. Si ya hay notas
+   escritas, las respeta.
+   ========================================================= */
+
+function candidatosColumna(ej, c, fija){
+  const ac = ej.acordes[c];
+  const lista = v => {
+    const r = [];
+    for(let m = RANGO[v][0]; m <= RANGO[v][1]; m++)
+      if(ac.pcs.has(mod12(m)) && (fija[v] == null || fija[v] === m)) r.push(m);
+    return r;
+  };
+  const res = [];
+  lista('S').forEach(S => lista('A').forEach(A => lista('T').forEach(T => {
+    if(A > S || T > A || T < ac.bajo || S - A > 12 || A - T > 12) return;
+    const iss = [];
+    revisarColumna(ej, c, { S, A, T, B: ac.bajo }, iss);
+    if(iss.some(x => x.nivel === 'error')) return;
+    res.push({ S, A, T, avisos: iss.length });
+  })));
+  return res;
+}
+
+// voz: notas ya escritas (o null). Devuelve la solución [{S,A,T}] o null si no hay ninguna.
+function resolver(ej, voz){
+  const n = ej.n;
+  const cands = [];
+  for(let c = 0; c < n; c++){
+    cands[c] = candidatosColumna(ej, c, (voz && voz[c]) || {});
+    if(!cands[c].length) return null;
+  }
+  const coste = [cands[0].map(x => 0.2 * (Math.abs(x.S - 67) + Math.abs(x.A - 62) + Math.abs(x.T - 55)) + 6 * x.avisos)];
+  const prev = [[]];
+  for(let c = 1; c < n; c++){
+    coste[c] = []; prev[c] = [];
+    cands[c].forEach((x, j) => {
+      let mejor = Infinity, desde = -1;
+      cands[c - 1].forEach((y, i) => {
+        if(coste[c - 1][i] === Infinity) return;
+        const iss = [];
+        revisarPar(ej, c - 1, { S:y.S, A:y.A, T:y.T, B:ej.acordes[c - 1].bajo }, { S:x.S, A:x.A, T:x.T, B:ej.acordes[c].bajo }, iss);
+        if(iss.some(z => z.nivel === 'error')) return;
+        const v = coste[c - 1][i] + Math.abs(x.S - y.S) + Math.abs(x.A - y.A) + Math.abs(x.T - y.T) + 6 * (iss.length + x.avisos);
+        if(v < mejor){ mejor = v; desde = i; }
+      });
+      coste[c].push(mejor); prev[c].push(desde);
+    });
+  }
+  let k = -1, mejor = Infinity;
+  coste[n - 1].forEach((v, j) => { if(v < mejor){ mejor = v; k = j; } });
+  if(k < 0) return null;
+  const sol = [];
+  for(let c = n - 1; c >= 0; c--){
+    const x = cands[c][k];
+    sol[c] = { S:x.S, A:x.A, T:x.T };
+    k = prev[c][k];
+  }
+  return sol;
+}
+
+/* =========================================================
+   AUDIO (se sintetiza en el navegador, sin archivos)
+   ========================================================= */
+
+let audioCtx = null, audioMaster = null, salidaActual = null, tempSonando = [];
+
+function audio(){
+  if(!audioCtx){
+    const AC = window.AudioContext || window.webkitAudioContext;
+    if(!AC) return null;
+    audioCtx = new AC();
+    const comp = audioCtx.createDynamicsCompressor();
+    audioMaster = audioCtx.createGain();
+    audioMaster.gain.value = 0.8;
+    audioMaster.connect(comp);
+    comp.connect(audioCtx.destination);
+  }
+  if(audioCtx.state === 'suspended') audioCtx.resume();
+  return audioCtx;
+}
+const frecuencia = midi => 440 * Math.pow(2, (midi - 69) / 12);
+
+// Una nota con timbre de teclado: armónicos que se apagan, los agudos antes
+function tocarNota(ctx, destino, midi, cuando, dur){
+  const f = frecuencia(midi);
+  const nota = ctx.createGain();
+  nota.gain.setValueAtTime(0, cuando);
+  nota.gain.linearRampToValueAtTime(0.13, cuando + 0.004);
+  nota.gain.exponentialRampToValueAtTime(0.0001, cuando + dur);
+  nota.connect(destino);
+  for(let k = 1; k <= 7; k++){
+    const osc = ctx.createOscillator();
+    osc.type = 'sine';
+    osc.frequency.value = f * k;
+    const g = ctx.createGain();
+    g.gain.setValueAtTime(1 / Math.pow(k, 1.25), cuando);
+    g.gain.exponentialRampToValueAtTime(0.0001, cuando + dur / (1 + 0.8 * (k - 1)));
+    osc.connect(g); g.connect(nota);
+    osc.start(cuando); osc.stop(cuando + dur + 0.05);
+  }
+}
+
+function nuevaSalida(){
+  const ctx = audio();
+  if(!ctx) return null;
+  detenerAudio();
+  salidaActual = ctx.createGain();
+  salidaActual.connect(audioMaster);
+  return { ctx, salida: salidaActual };
+}
+
+function detenerAudio(){
+  tempSonando.forEach(clearTimeout);
+  tempSonando = [];
+  if(salidaActual && audioCtx){
+    try{ salidaActual.gain.setTargetAtTime(0, audioCtx.currentTime, 0.03); }catch(e){}
+  }
+  salidaActual = null;
+}
+
+function sonarNota(m){
+  const a = nuevaSalida();
+  if(a) tocarNota(a.ctx, a.salida, m, a.ctx.currentTime + 0.02, 1.3);
+}
+
+/* =========================================================
+   ESTADO Y GUARDADO
+   ========================================================= */
+
+const CLAVE_PROGRESO = 'bajocifrado-progreso-v1';
+const CLAVE_SESION = 'bajocifrado-sesion-v1';
+
+function leer(clave, base){
+  try{ const t = localStorage.getItem(clave); if(t) return Object.assign({}, base, JSON.parse(t)); }catch(e){}
+  return Object.assign({}, base);
+}
+function escribir(clave, datos){ try{ localStorage.setItem(clave, JSON.stringify(datos)); }catch(e){} }
+
+const progreso = leer(CLAVE_PROGRESO, { ok:{} });
+let tonElegida = null;                       // null = aleatoria
+
+let est = null;   // el ejercicio en curso
+/* est = { ej, voz:[{S,A,T}], sel:{c,v}, pasado:[], fantasma:null, fantasmaSolo:null, analisis:false,
+           resultado:null, resaltado:null, usoAyuda:false, contado:false, sonando:null } */
+
+function vozVacia(n){ return Array.from({ length:n }, () => ({ S:null, A:null, T:null })); }
+function copiarVoz(voz){ return voz.map(x => Object.assign({}, x)); }
+
+function guardarSesion(){
+  if(!est) { try{ localStorage.removeItem(CLAVE_SESION); }catch(e){} return; }
+  escribir(CLAVE_SESION, {
+    fid: est.ej.formula.id, tonId: est.ej.ton.id, bajos: est.ej.acordes.map(a => a.bajo),
+    voz: est.voz, usoAyuda: est.usoAyuda, contado: est.contado
+  });
+}
+
+function restaurarSesion(){
+  try{
+    const s = JSON.parse(localStorage.getItem(CLAVE_SESION));
+    if(!s) return null;
+    const f = formulaPorId(s.fid), ton = tonPorId(s.tonId);
+    if(!f || !ton || !Array.isArray(s.bajos) || s.bajos.length !== f.acordes.length) return null;
+    const ej = construirEjercicio(f, ton, s.bajos);
+    return { ej, voz: s.voz && s.voz.length === ej.n ? s.voz : vozVacia(ej.n), usoAyuda: !!s.usoAyuda, contado: !!s.contado };
+  }catch(e){ return null; }
+}
+
+function abrirEjercicio(ej, datos){
+  detenerAudio();
+  est = {
+    ej, voz: datos ? datos.voz : vozVacia(ej.n), sel:{ c:0, v:'T' }, pasado:[],
+    fantasma:null, fantasmaSolo:null, analisis:false, resultado:null, resaltado:null,
+    usoAyuda: datos ? datos.usoAyuda : false, contado: datos ? datos.contado : false, sonando:null
+  };
+  guardarSesion();
+  mostrarPantalla('practica');
+  pintarPractica();
+}
+
+function empezar(fid){
+  const f = formulaPorId(fid);
+  const ej = generarEjercicio(f, tonElegida);
+  if(!ej){ alert('No se pudo generar un ejercicio con estos ajustes.'); return; }
+  abrirEjercicio(ej, null);
+}
+
+/* =========================================================
+   PANTALLAS
+   ========================================================= */
+
+function mostrarPantalla(nombre){
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  $('screen-' + nombre).classList.add('active');
+  document.body.classList.toggle('en-practica', nombre === 'practica');
+  window.scrollTo(0, 0);
+}
+
+function pintarMenu(){
+  // Tonalidad
+  const chips = $('chips-ton');
+  chips.innerHTML = '';
+  [{ id:null, nombre:'Aleatoria' }].concat(TONALIDADES).forEach(t => {
+    const b = document.createElement('button');
+    b.className = 'chip' + (t.id === tonElegida ? ' selected' : '');
+    b.textContent = t.nombre.replace(' mayor', '');
+    b.setAttribute('aria-label', t.nombre);
+    b.addEventListener('click', () => { tonElegida = t.id; pintarMenu(); });
+    chips.appendChild(b);
+  });
+
+  // Continuar
+  const ses = restaurarSesion();
+  const cont = $('continuar');
+  cont.innerHTML = '';
+  if(ses){
+    cont.style.display = '';
+    const b = document.createElement('button');
+    b.className = 'card card-continue';
+    b.style.width = '100%';
+    b.innerHTML = '<div class="card-main"><div class="card-name">Continuar</div><div class="card-desc">' +
+      nombreFormula(ses.ej.formula) + ' · ' + ses.ej.ton.nombre + '</div></div>';
+    b.addEventListener('click', () => abrirEjercicio(ses.ej, ses));
+    cont.appendChild(b);
+  } else cont.style.display = 'none';
+
+  // Niveles y fórmulas
+  const niv = $('niveles');
+  niv.innerHTML = '';
+  NIVELES.forEach(n => {
+    const lab = document.createElement('div');
+    lab.className = 'section-label';
+    lab.textContent = 'Nivel ' + n.id + ' · ' + n.nombre;
+    niv.appendChild(lab);
+    const lista = document.createElement('div');
+    lista.className = 'cards';
+    FORMULAS.filter(f => f.nivel === n.id).forEach(f => {
+      const b = document.createElement('button');
+      b.className = 'card';
+      const veces = progreso.ok[f.id] || 0;
+      b.innerHTML = '<div class="card-main"><div class="card-name">' + nombreFormula(f) + '</div><div class="card-desc">' + f.desc +
+        '</div></div>' + (veces ? '<div class="card-ok">✓ ' + veces + '</div>' : '');
+      b.addEventListener('click', () => empezar(f.id));
+      lista.appendChild(b);
+    });
+    niv.appendChild(lista);
+  });
+}
+
+/* =========================================================
+   DIBUJO DEL PENTAGRAMA
+   ========================================================= */
+
+const GEO = { W:360, H:268, yTB:96, yBB:176 };   // yTB: línea inferior del sol; yBB: línea inferior del fa
+const yAgudo = pos => GEO.yTB - (pos - 30) * 5;  // pos 30 = Mi4
+const yGrave = pos => GEO.yBB - (pos - 18) * 5;  // pos 18 = Sol2
+const ORDEN_SOST = [38, 35, 39, 36, 33, 37, 34]; // posiciones en clave de sol: Fa Do Sol Re La Mi Si
+const ORDEN_BEM  = [34, 37, 33, 36, 32, 35, 31];
+
+function ledgers(clave, pos, x){
+  const pb = clave === 'A' ? 30 : 18, pt = pb + 8;
+  const y = clave === 'A' ? yAgudo : yGrave;
+  let s = '';
+  const linea = p => '<line class="p-ledger" x1="' + (x - 11) + '" x2="' + (x + 11) + '" y1="' + y(p) + '" y2="' + y(p) + '"/>';
+  if(pos <= pb - 2) for(let p = pb - 2; p >= pos; p -= 2) s += linea(p);
+  if(pos >= pt + 2) for(let p = pt + 2; p <= pos; p += 2) s += linea(p);
+  return s;
+}
+
+// Una redonda. opciones: fantasma (contorno punteado), color
+function cabeza(x, y, color, fantasma){
+  if(fantasma)
+    return '<ellipse cx="' + x + '" cy="' + y + '" rx="6.6" ry="4.7" transform="rotate(-18 ' + x + ' ' + y + ')" fill="none" stroke="' + color + '" stroke-width="1.8" stroke-dasharray="3 2.2" opacity=".75"/>';
+  return '<ellipse cx="' + x + '" cy="' + y + '" rx="6.8" ry="4.9" transform="rotate(-18 ' + x + ' ' + y + ')" fill="' + color + '"/>' +
+         '<ellipse cx="' + x + '" cy="' + y + '" rx="2.5" ry="4.1" transform="rotate(48 ' + x + ' ' + y + ')" fill="var(--surface)"/>';
+}
+
+function dibujar(){
+  if(!est) return;
+  const ej = est.ej, ton = ej.ton, n = ej.n;
+  const nAcc = ton.nSost + ton.nBem;
+  const xIni = 52 + nAcc * 9 + 10, xFin = GEO.W - 14;
+  const colW = (xFin - xIni) / n;
+  const cx = c => xIni + colW * (c + 0.5);
+  const yTop = yAgudo(38), yBot = GEO.yBB;
+  let s = '<svg viewBox="0 0 ' + GEO.W + ' ' + GEO.H + '" role="img" aria-label="Pentagrama del ejercicio">';
+
+  // Bandas de la columna seleccionada y de la que suena
+  for(let c = 0; c < n; c++){
+    const x = xIni + colW * c;
+    if(est.sonando === c) s += '<rect class="p-banda suena" x="' + x + '" y="28" width="' + colW + '" height="' + (GEO.H - 56) + '" rx="8"/>';
+    else if(est.sel.c === c) s += '<rect class="p-banda" x="' + x + '" y="28" width="' + colW + '" height="' + (GEO.H - 56) + '" rx="8"/>';
+  }
+
+  // Pentagramas
+  [GEO.yTB, GEO.yBB].forEach(base => { for(let k = 0; k < 5; k++)
+    s += '<line class="p-linea" x1="12" x2="' + (GEO.W - 10) + '" y1="' + (base - k * 10) + '" y2="' + (base - k * 10) + '"/>'; });
+  s += '<line class="p-barra" x1="12" x2="12" y1="' + yTop + '" y2="' + yBot + '"/>';
+  s += '<line class="p-barra" x1="' + (xIni - 6) + '" x2="' + (xIni - 6) + '" y1="' + yTop + '" y2="' + GEO.yTB + '"/>';
+  s += '<line class="p-barra" x1="' + (xIni - 6) + '" x2="' + (xIni - 6) + '" y1="' + (GEO.yBB - 40) + '" y2="' + yBot + '"/>';
+  s += '<line class="p-barra" x1="' + (GEO.W - 10) + '" x2="' + (GEO.W - 10) + '" y1="' + yTop + '" y2="' + yBot + '"/>';
+
+  // Claves y armadura
+  s += '<text class="p-clave" font-size="41" x="16" y="' + (GEO.yTB + 2) + '">&#x1D11E;</text>';
+  s += '<text class="p-clave" font-size="36" x="16" y="' + (GEO.yBB - 4) + '">&#x1D122;</text>';
+  const alts = ton.nSost ? ORDEN_SOST.slice(0, ton.nSost) : ORDEN_BEM.slice(0, ton.nBem);
+  const glifo = ton.nSost ? '&#x266F;' : '&#x266D;';
+  alts.forEach((p, i) => {
+    const x = 54 + i * 9;
+    s += '<text class="p-alt" font-size="22" x="' + x + '" y="' + (yAgudo(p) + 5) + '">' + glifo + '</text>';
+    s += '<text class="p-alt" font-size="22" x="' + x + '" y="' + (yGrave(p - 14) + 5) + '">' + glifo + '</text>';
+  });
+
+  // Notas
+  const pos = {};   // posiciones diatónicas de las notas escritas, para desplazar las segundas
+  for(let c = 0; c < n; c++){
+    const V = voces(ej, est.voz, c);
+    VOCES.forEach(v => { if(V[v] != null) pos[c + v] = posicion(V[v], ton); });
+  }
+  const dibujarVoz = (c, v, m, fantasma) => {
+    const p = posicion(m, ton);
+    const clave = (v === 'S' || v === 'A') ? 'A' : 'G';
+    const y = clave === 'A' ? yAgudo(p) : yGrave(p);
+    let x = cx(c);
+    // Dos notas vecinas en el mismo pentagrama: la de arriba va a la derecha
+    const par = v === 'S' ? 'A' : v === 'T' ? 'B' : null;
+    if(par && pos[c + par] != null && p - pos[c + par] === 1) x += 11;
+    return ledgers(clave, p, x) + cabeza(x, y, COLOR_VOZ[v], fantasma);
+  };
+  for(let c = 0; c < n; c++){
+    const V = voces(ej, est.voz, c);
+    VOCES.forEach(v => { if(V[v] != null) s += dibujarVoz(c, v, V[v], false); });
+  }
+
+  // Fantasma: solución completa o una sola nota
+  const fant = [];
+  if(est.fantasma) for(let c = 0; c < n; c++) ['S', 'A', 'T'].forEach(v => {
+    if(est.voz[c][v] !== est.fantasma[c][v]) fant.push([c, v, est.fantasma[c][v]]);
+  });
+  if(est.fantasmaSolo) fant.push([est.fantasmaSolo.c, est.fantasmaSolo.v, est.fantasmaSolo.m]);
+  fant.forEach(([c, v, m]) => { s += dibujarVoz(c, v, m, true); });
+
+  // Problemas resaltados
+  if(est.resaltado){
+    est.resaltado.cols.forEach(c => est.resaltado.voces.forEach(v => {
+      const V = voces(ej, est.voz, c);
+      if(V[v] == null) return;
+      const p = posicion(V[v], ton);
+      const y = (v === 'S' || v === 'A') ? yAgudo(p) : yGrave(p);
+      s += '<circle cx="' + cx(c) + '" cy="' + y + '" r="12" fill="none" stroke="var(--error)" stroke-width="2"/>';
+    }));
+  }
+
+  // Cifras bajo el bajo, números romanos arriba y casillas de las voces
+  for(let c = 0; c < n; c++){
+    const ac = ej.acordes[c];
+    const partes = ac.fig ? ac.fig.split('/') : [];
+    partes.forEach((t, i) => { s += '<text class="p-fig" x="' + cx(c) + '" y="' + (GEO.yBB + 36 + i * 13) + '">' + t + '</text>'; });
+    if(est.analisis) s += '<text class="p-romano" x="' + cx(c) + '" y="20">' + ac.nombre + '</text>';
+    ORDEN_ENTRADA.forEach((v, i) => {
+      const x = cx(c) + (i - 1) * 17, y = GEO.H - 22;
+      const lleno = est.voz[c][v] != null;
+      const sel = est.sel.c === c && est.sel.v === v;
+      s += '<g class="p-slot" data-col="' + c + '" data-voz="' + v + '">' +
+        '<circle cx="' + x + '" cy="' + y + '" r="14" fill="transparent"/>' +
+        '<circle cx="' + x + '" cy="' + y + '" r="' + (sel ? 7.5 : 6) + '" fill="' + (lleno ? COLOR_VOZ[v] : 'none') + '" stroke="' + (sel ? 'var(--text)' : COLOR_VOZ[v]) + '" stroke-width="' + (sel ? 2 : 1.4) + '"/></g>';
+    });
+  }
+
+  // Zonas para tocar cada acorde
+  for(let c = 0; c < n; c++)
+    s += '<rect class="p-hit" data-col="' + c + '" x="' + (xIni + colW * c) + '" y="28" width="' + colW + '" height="' + (GEO.H - 72) + '"/>';
+
+  $('pauta').innerHTML = s + '</svg>';
+}
+
+/* =========================================================
+   PRÁCTICA: paleta, selección y escritura de notas
+   ========================================================= */
+
+function pintarPractica(){
+  const ej = est.ej;
+  $('p-nombre').textContent = nombreFormula(ej.formula);
+  $('p-clave').textContent = ej.ton.nombre + ' · ' + ej.formula.desc;
+  $('t-ana').classList.toggle('on', est.analisis);
+  $('t-sol').classList.toggle('on', !!est.fantasma);
+
+  // Botones de las notas, con las alteraciones de la tonalidad
+  const notas = $('notas');
+  notas.innerHTML = '';
+  LETRAS.forEach((nombre, i) => {
+    const g = ej.ton.grados.find(x => x.letra === i);
+    const b = document.createElement('button');
+    b.className = 'nota-btn';
+    b.textContent = nombre + SIMBOLO[g.acc];
+    b.addEventListener('click', () => escribirNota(i));
+    notas.appendChild(b);
+  });
+  pintarSeleccion();
+  pintarResultado();
+}
+
+function pintarSeleccion(){
+  const { c, v } = est.sel;
+  $('n-acorde').innerHTML = '<b>Acorde ' + (c + 1) + '/' + est.ej.n + '</b><br>' + est.ej.acordes[c].nombre;
+  $('n-voz').innerHTML = '<span class="punto" style="background:' + COLOR_VOZ[v] + '"></span><b>' + NOMBRE_VOZ_MAY[v] + '</b>';
+  $('b-deshacer').disabled = est.pasado.length === 0;
+  dibujar();
+}
+
+function seleccionar(c, v){
+  est.sel = { c: Math.max(0, Math.min(est.ej.n - 1, c)), v: v || est.sel.v };
+  pintarSeleccion();
+}
+
+function moverVoz(d){
+  const i = ORDEN_ENTRADA.indexOf(est.sel.v);
+  seleccionar(est.sel.c, ORDEN_ENTRADA[(i + d + ORDEN_ENTRADA.length) % ORDEN_ENTRADA.length]);
+}
+
+// Cambios que borran la solución mostrada y el resultado anterior
+function cambiar(nueva){
+  est.pasado.push(copiarVoz(est.voz));
+  if(est.pasado.length > 100) est.pasado.shift();
+  est.voz = nueva;
+  est.fantasma = null; est.fantasmaSolo = null; est.resultado = null; est.resaltado = null;
+  guardarSesion();
+}
+
+// La octava del registro de la voz más cercana a la nota anterior de esa voz
+function elegirOctava(c, v, pc){
+  const [lo, hi] = RANGO[v];
+  const opciones = [];
+  for(let m = lo; m <= hi; m++) if(mod12(m) === pc) opciones.push(m);
+  let ref = null;
+  if(c > 0 && est.voz[c - 1][v] != null) ref = est.voz[c - 1][v];
+  else if(c + 1 < est.ej.n && est.voz[c + 1][v] != null) ref = est.voz[c + 1][v];
+  else {
+    const arriba = { T:'A', A:'S' }[v], abajo = { S:'A', A:'T', T:null }[v];
+    if(v === 'T') ref = est.ej.acordes[c].bajo + 12;
+    else if(abajo && est.voz[c][abajo] != null) ref = est.voz[c][abajo] + 4;
+    else ref = (lo + hi) / 2;
+  }
+  opciones.sort((a, b) => Math.abs(a - ref) - Math.abs(b - ref));
+  return opciones[0];
+}
+
+function escribirNota(letra){
+  const { c, v } = est.sel;
+  const g = est.ej.ton.grados.find(x => x.letra === letra);
+  const m = elegirOctava(c, v, g.pc);
+  const nueva = copiarVoz(est.voz);
+  nueva[c][v] = m;
+  cambiar(nueva);
+  sonarNota(m);
+  // Avanza a la voz siguiente (de grave a aguda) y, al terminar el acorde, al siguiente
+  const i = ORDEN_ENTRADA.indexOf(v);
+  if(i < ORDEN_ENTRADA.length - 1) est.sel = { c, v: ORDEN_ENTRADA[i + 1] };
+  else if(c + 1 < est.ej.n) est.sel = { c: c + 1, v: ORDEN_ENTRADA[0] };
+  pintarSeleccion();
+  pintarResultado();
+}
+
+function cambiarOctava(d){
+  const { c, v } = est.sel, m = est.voz[c][v];
+  if(m == null) return;
+  const nuevo = m + 12 * d;
+  if(nuevo < 36 || nuevo > 88) return;
+  const nueva = copiarVoz(est.voz);
+  nueva[c][v] = nuevo;
+  cambiar(nueva);
+  sonarNota(nuevo);
+  pintarSeleccion(); pintarResultado();
+}
+
+function borrarNota(){
+  const { c, v } = est.sel;
+  if(est.voz[c][v] == null) return;
+  const nueva = copiarVoz(est.voz);
+  nueva[c][v] = null;
+  cambiar(nueva);
+  pintarSeleccion(); pintarResultado();
+}
+
+function deshacer(){
+  if(!est.pasado.length) return;
+  est.voz = est.pasado.pop();
+  est.fantasma = null; est.fantasmaSolo = null; est.resultado = null; est.resaltado = null;
+  guardarSesion();
+  pintarSeleccion(); pintarResultado();
+}
+
+/* ---- Pistas, solución y comprobación ---- */
+
+function aviso(texto, clase){
+  $('resultado').innerHTML = '<div class="res-sub' + (clase ? ' ' + clase : '') + '">' + texto + '</div>';
+}
+
+function pedirSolucion(){
+  if(est.fantasma){ est.fantasma = null; pintarPractica(); return; }
+  const sol = resolver(est.ej, est.voz);
+  est.usoAyuda = true;
+  est.fantasmaSolo = null;
+  if(sol){
+    est.fantasma = sol;
+    pintarPractica();
+    aviso('Las notas con contorno punteado son una solución posible que respeta lo que ya escribiste. Hay otras: esta es la de menor movimiento.');
+  } else {
+    est.fantasma = resolver(est.ej, null);
+    pintarPractica();
+    aviso('Con las notas que escribiste no se llega a ninguna solución sin errores. Te muestro otro camino posible (punteado); revisa tus notas con <b>Comprobar</b>.', 'mal');
+  }
+  guardarSesion();
+}
+
+function pedirPista(){
+  const { c, v } = est.sel;
+  est.usoAyuda = true;
+  est.fantasma = null;
+  const conRespeto = resolver(est.ej, est.voz);
+  const conf = conRespeto !== null;
+  const sol = conRespeto || resolver(est.ej, null);
+  const m = sol[c][v];
+  if(est.voz[c][v] === m){
+    est.fantasmaSolo = null;
+    pintarPractica();
+    aviso('Esa nota ya coincide con una solución posible.');
+  } else {
+    est.fantasmaSolo = { c, v, m };
+    pintarPractica();
+    aviso('Pista: ' + NOMBRE_VOZ_MAY[v] + ' del acorde ' + (c + 1) + ' → <b>' + nombreNota(m, est.ej.ton) + '</b>' +
+      (conf ? '' : '. Ojo: con tus notas actuales no hay solución; esta pista viene de otro camino.'));
+  }
+  guardarSesion();
+}
+
+function comprobar(){
+  est.fantasma = null; est.fantasmaSolo = null;
+  const r = analizar(est.ej, est.voz);
+  est.resultado = r;
+  est.resaltado = null;
+  if(r.ok && !est.contado && !est.usoAyuda){
+    est.contado = true;
+    progreso.ok[est.ej.formula.id] = (progreso.ok[est.ej.formula.id] || 0) + 1;
+    escribir(CLAVE_PROGRESO, progreso);
+  }
+  guardarSesion();
+  est.analisis = est.analisis || r.ok;
+  pintarPractica();
+  // Baja hasta el resultado (queda visible por encima de la paleta)
+  const y = $('resultado').getBoundingClientRect().top + window.scrollY - 70;
+  window.scrollTo({ top: Math.max(0, y), behavior: 'smooth' });
+}
+
+function pintarResultado(){
+  const cont = $('resultado');
+  const r = est.resultado;
+  if(!r){ cont.innerHTML = ''; return; }
+  const nuevaAnalisis = analizar(est.ej, est.voz);   // siempre refleja lo escrito ahora
+  let h = '';
+  if(!nuevaAnalisis.completo){
+    let faltan = 0;
+    est.voz.forEach(x => ['S', 'A', 'T'].forEach(v => { if(x[v] == null) faltan++; }));
+    h += '<div class="res-titulo">Faltan ' + faltan + (faltan === 1 ? ' nota' : ' notas') + '</div><div class="res-sub">Rellena las casillas vacías debajo del pentagrama' +
+         (nuevaAnalisis.errores ? '. Mientras tanto, esto es lo que ya se puede corregir:' : ' y vuelve a comprobar.') + '</div>';
+  } else if(nuevaAnalisis.ok){
+    h += '<div class="res-titulo ok">¡Bien resuelto!</div>';
+    h += '<div class="res-sub">' + (nuevaAnalisis.avisos ? 'Sin errores y con ' + nuevaAnalisis.avisos + (nuevaAnalisis.avisos === 1 ? ' aviso' : ' avisos') + ' de estilo.' : 'Sin errores ni avisos.') +
+         (est.usoAyuda ? ' Como usaste ayuda, no suma a tu progreso.' : '') + '</div>';
+  } else {
+    h += '<div class="res-titulo mal">' + nuevaAnalisis.errores + (nuevaAnalisis.errores === 1 ? ' error' : ' errores') +
+         (nuevaAnalisis.avisos ? ' y ' + nuevaAnalisis.avisos + (nuevaAnalisis.avisos === 1 ? ' aviso' : ' avisos') : '') + '</div>';
+  }
+  nuevaAnalisis.issues.sort((a, b) => a.cols[0] - b.cols[0] || (a.nivel === 'error' ? -1 : 1)).forEach((x, i) => {
+    h += '<button class="issue ' + x.nivel + '" data-i="' + i + '"><span class="marca"></span><span>' + x.msg + '</span></button>';
+  });
+  if(nuevaAnalisis.ok) h += '<button class="btn btn-primary" id="b-siguiente" style="margin-top:6px;">Otro ejercicio</button>';
+  cont.innerHTML = h;
+  est.listaIssues = nuevaAnalisis.issues;
+  cont.querySelectorAll('.issue').forEach(b => b.addEventListener('click', () => {
+    const x = est.listaIssues[Number(b.dataset.i)];
+    est.resaltado = x;
+    seleccionar(x.cols[0], null);
+    cont.querySelectorAll('.issue').forEach(o => o.classList.toggle('sel', o === b));
+  }));
+  const sig = $('b-siguiente');
+  if(sig) sig.addEventListener('click', () => empezar(est.ej.formula.id));
+}
+
+/* ---- Escuchar ---- */
+function escuchar(){
+  if(est.sonando != null){ detenerAudio(); est.sonando = null; $('b-escuchar').innerHTML = '&#9654;&#xFE0E; Escuchar'; dibujar(); return; }
+  const a = nuevaSalida();
+  if(!a) return;
+  const paso = 1.5, t0 = a.ctx.currentTime + 0.05;
+  const fuente = est.fantasma ? est.fantasma.map((x, c) => ({ S: est.voz[c].S ?? x.S, A: est.voz[c].A ?? x.A, T: est.voz[c].T ?? x.T })) : est.voz;
+  for(let c = 0; c < est.ej.n; c++){
+    const V = voces(est.ej, fuente, c);
+    VOCES.forEach(v => { if(V[v] != null) tocarNota(a.ctx, a.salida, V[v], t0 + c * paso, paso * 1.05); });
+    tempSonando.push(setTimeout(() => { if(est){ est.sonando = c; dibujar(); } }, 50 + c * paso * 1000));
+  }
+  tempSonando.push(setTimeout(() => { if(est){ est.sonando = null; $('b-escuchar').innerHTML = '&#9654;&#xFE0E; Escuchar'; dibujar(); } }, 50 + est.ej.n * paso * 1000));
+  est.sonando = 0;
+  $('b-escuchar').innerHTML = '&#9632; Parar';
+  dibujar();
+}
+
+/* =========================================================
+   EVENTOS
+   ========================================================= */
+
+$('pauta').addEventListener('click', e => {
+  const t = e.target.closest('[data-col]');
+  if(!t) return;
+  seleccionar(Number(t.dataset.col), t.dataset.voz || null);
+});
+$('n-acorde-prev').addEventListener('click', () => seleccionar(est.sel.c - 1));
+$('n-acorde-next').addEventListener('click', () => seleccionar(est.sel.c + 1));
+$('n-voz-prev').addEventListener('click', () => moverVoz(-1));
+$('n-voz-next').addEventListener('click', () => moverVoz(1));
+$('b-arriba').addEventListener('click', () => cambiarOctava(1));
+$('b-abajo').addEventListener('click', () => cambiarOctava(-1));
+$('b-borrar').addEventListener('click', borrarNota);
+$('b-deshacer').addEventListener('click', deshacer);
+$('b-escuchar').addEventListener('click', escuchar);
+$('b-comprobar').addEventListener('click', comprobar);
+$('t-pista').addEventListener('click', pedirPista);
+$('t-sol').addEventListener('click', pedirSolucion);
+$('t-ana').addEventListener('click', () => { est.analisis = !est.analisis; pintarPractica(); });
+$('t-nuevo').addEventListener('click', () => empezar(est.ej.formula.id));
+$('btn-salir').addEventListener('click', () => { detenerAudio(); est.sonando = null; mostrarPantalla('home'); pintarMenu(); });
+
+pintarMenu();
+</script>
+</body>
+</html>
