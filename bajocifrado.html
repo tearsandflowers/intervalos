@@ -144,6 +144,15 @@ body.en-practica .paleta{display:block;}
 .cifra{display:flex;gap:10px;font-size:13px;color:var(--muted);line-height:1.45;}
 .cifra b{color:var(--accent);font-family:var(--serif);font-size:15px;min-width:44px;font-weight:500;}
 .sheet .pauta{margin-top:0;}
+#sheet-cuerpo > p:first-child{margin-top:16px;}
+.cifras.anchas b{min-width:92px;}
+
+details.ejemplo{margin-top:12px;border-top:none;padding-top:0;}
+details.ejemplo summary{font-size:13px;color:var(--accent);cursor:pointer;}
+.ej-etiq{display:inline-block;font-size:11px;font-weight:500;text-transform:uppercase;letter-spacing:.1em;margin:12px 0 6px;}
+.ej-etiq.mal{color:var(--error);}
+.ej-etiq.bien{color:var(--ok);}
+.ver-regla{display:inline-block !important;margin-top:4px;color:var(--accent) !important;text-decoration:underline;cursor:pointer;}
 
 /* ---- Pentagrama ---- */
 .p-linea{stroke:var(--faint);stroke-width:1;}
@@ -175,6 +184,11 @@ body.en-practica .paleta{display:block;}
       <div class="card-desc">Qué son, para qué sirven y en qué ejercicio se practica cada una.</div></div>
     </button>
 
+    <button class="card" id="card-reglas" style="width:100%;margin-top:10px;">
+      <div class="card-main"><div class="card-name">Guía: las reglas</div>
+      <div class="card-desc">Movimientos de las voces, quintas y octavas paralelas, sensible, séptima y más, con ejemplos.</div></div>
+    </button>
+
     <div class="section-label">Tonalidad</div>
     <div class="chips" id="chips-ton"></div>
 
@@ -188,6 +202,7 @@ body.en-practica .paleta{display:block;}
         <li>Sin quintas ni octavas paralelas; avisos de quintas y octavas directas entre las voces externas.</li>
         <li>La sensible sube a la tónica, la séptima baja por grado, y el 6/4 cadencial resuelve a la dominante.</li>
       </ul>
+      <p class="helper"><a href="#" id="l-reglas-menu" style="color:var(--accent);">Ver la guía completa de reglas</a></p>
     </details>
 
     <p class="helper" style="margin-top:22px;"><a href="index.html" style="color:var(--accent);">← Práctica musical</a> (escalas, intervalos, guitarra y oído)</p>
@@ -898,7 +913,8 @@ function cabeza(x, y, color, fantasma){
 // o: { sel, sonando, fantasma, fantasmaSolo, resaltado, analisis, slots }
 function svgPauta(ej, voz, o){
   const ton = ej.ton, n = ej.n;
-  const H = o.slots ? GEO.H : GEO.H - 32;   // sin casillas el dibujo es más bajo
+  // Sin casillas el dibujo es más bajo; sin cifras, todavía más
+  const H = o.slots ? GEO.H : (ej.acordes.some(x => x.fig) ? GEO.H - 32 : GEO.H - 62);
   const nAcc = ton.nSost + ton.nBem;
   const xIni = 52 + nAcc * 9 + 10, xFin = GEO.W - 14;
   const colW = (xFin - xIni) / n;
@@ -1198,12 +1214,15 @@ function pintarResultado(){
          (nuevaAnalisis.avisos ? ' y ' + nuevaAnalisis.avisos + (nuevaAnalisis.avisos === 1 ? ' aviso' : ' avisos') : '') + '</div>';
   }
   nuevaAnalisis.issues.sort((a, b) => a.cols[0] - b.cols[0] || (a.nivel === 'error' ? -1 : 1)).forEach((x, i) => {
-    h += '<button class="issue ' + x.nivel + '" data-i="' + i + '"><span class="marca"></span><span>' + x.msg + '</span></button>';
+    h += '<button class="issue ' + x.nivel + '" data-i="' + i + '"><span class="marca"></span><span>' + x.msg +
+      '<small class="ver-regla" data-seccion="' + (SECCION_DE_REGLA[x.regla] || '') + '" role="link" tabindex="0">Ver la regla →</small></span></button>';
   });
   if(nuevaAnalisis.ok) h += '<button class="btn btn-primary" id="b-siguiente" style="margin-top:6px;">Otro ejercicio</button>';
   cont.innerHTML = h;
   est.listaIssues = nuevaAnalisis.issues;
-  cont.querySelectorAll('.issue').forEach(b => b.addEventListener('click', () => {
+  cont.querySelectorAll('.issue').forEach(b => b.addEventListener('click', e => {
+    const vr = e.target.closest('.ver-regla');
+    if(vr){ abrirReglas(vr.dataset.seccion); return; }
     const x = est.listaIssues[Number(b.dataset.i)];
     est.resaltado = x;
     seleccionar(x.cols[0], null);
@@ -1485,7 +1504,7 @@ function abrirTeoria(fid){
       teoriaEstado.modelo.ej.acordes.map(a => '<div class="cifra"><b>' + a.nombre + '</b><span>' + SIGNIFICADO_CIFRA[a.fig] + '</span></div>').join('') + '</div>';
     h += '<h3>Un ejemplo en Do mayor</h3><div id="teoria-ejemplo"></div>' +
          '<button class="btn btn-primary" id="b-ejemplo" style="margin-top:12px;">&#9654;&#xFE0E; Escuchar el ejemplo</button>';
-    h += '<p class="helper" style="margin-top:18px;"><a href="#" id="l-guia" style="color:var(--accent);">Guía general de cadencias</a></p>';
+    h += '<p class="helper" style="margin-top:18px;"><a href="#" id="l-guia" style="color:var(--accent);">Guía general de cadencias</a> · <a href="#" id="l-reglas" style="color:var(--accent);">Guía de reglas</a></p>';
     cuerpo.innerHTML = h;
     pintarEjemplo();
     progreso.vistas[f.id] = true;
@@ -1521,6 +1540,191 @@ function escucharEjemplo(){
 }
 
 /* =========================================================
+   GUÍA DE REGLAS
+   Explica cada regla que comprueba la app, con ejemplos
+   "mal" y "bien" dibujados en Do mayor.
+   ========================================================= */
+
+// Qué sección de la guía explica cada regla que puede salir al comprobar
+const SECCION_DE_REGLA = {
+  tesitura:'registro', cruce:'voces', unisono:'voces', espaciado:'voces', superposicion:'voces',
+  ajena:'acorde', completo:'acorde', duplicacion:'duplicar',
+  paralelas:'paralelas', directas:'directas', salto:'saltos',
+  sensible:'sensible', septima:'septima', 'sexta-cuarta':'sextacuarta'
+};
+
+// Ejemplos: "mal" es una realización con la regla rota; "bien" se calcula con el solucionador
+// dejando fijos los acordes indicados en "fijar" (si no hay, resuelve todo).
+const EJEMPLOS_REGLAS = {
+  paralelas5: {
+    titulo:'quintas paralelas', regla:'paralelas',
+    acordes:[[0,''],[4,'']], bajos:[48, 43], fijar:[0],
+    mal:[{S:64,A:60,T:55},{S:62,A:59,T:50}],
+    notaMal:'El tenor y el bajo bajan juntos y siguen a una quinta: Sol–Do pasa a Re–Sol.',
+    notaBien:'Una forma de corregirlo: conservar la nota común y mover las demás voces por grado.'
+  },
+  paralelas8: {
+    titulo:'octavas paralelas', regla:'paralelas',
+    acordes:[[0,''],[3,'']], bajos:[48, 53], fijar:[0],
+    mal:[{S:72,A:67,T:64},{S:77,A:69,T:65}],
+    notaMal:'El soprano y el bajo suben juntos y siguen a la misma distancia de octava (dos octavas): Do–Do pasa a Fa–Fa.',
+    notaBien:'El soprano mantiene o baja por grado mientras el bajo sube: sin octavas paralelas.'
+  },
+  contrario: {
+    titulo:'IV → V con todas las voces subiendo', regla:'paralelas',
+    acordes:[[3,''],[4,'']], bajos:[53, 55], fijar:[0],
+    mal:[{S:72,A:69,T:65},{S:74,A:71,T:67}],
+    notaMal:'El bajo sube un grado y las tres voces superiores suben con él: salen quintas y octavas paralelas con el bajo.',
+    notaBien:'Con las voces superiores bajando mientras el bajo sube (movimiento contrario) se evita el problema.'
+  },
+  sensible: {
+    titulo:'la sensible que no sube', regla:'sensible',
+    acordes:[[4,''],[0,'']], bajos:[43, 48], fijar:[0],
+    mal:[{S:71,A:62,T:55},{S:67,A:64,T:55}],
+    notaMal:'El soprano tiene la sensible (Si) y baja a Sol en vez de subir a Do.',
+    notaBien:'El soprano sube de Si a Do.'
+  },
+  septima: {
+    titulo:'la séptima que no baja', regla:'septima',
+    acordes:[[4,'7'],[0,'']], bajos:[43, 48], fijar:[0],
+    mal:[{S:65,A:62,T:59},{S:67,A:64,T:60}],
+    notaMal:'El soprano tiene la séptima del acorde (Fa) y sube a Sol en vez de bajar a Mi.',
+    notaBien:'La séptima baja por grado: Fa pasa a Mi.'
+  },
+  duplicacion: {
+    titulo:'se duplica la sensible', regla:'duplicacion',
+    acordes:[[4,'']], bajos:[43], fijar:[],
+    mal:[{S:71,A:62,T:59}],
+    notaMal:'El soprano y el tenor cantan Si, la sensible del acorde de dominante.',
+    notaBien:'En estado fundamental se duplica la fundamental (Sol), que ya está en el bajo.'
+  },
+  tercera: {
+    titulo:'falta la tercera', regla:'completo',
+    acordes:[[0,'']], bajos:[48], fijar:[],
+    mal:[{S:67,A:60,T:55}],
+    notaMal:'Se oyen Do, Sol y Do, pero falta Mi, la tercera: el acorde no es ni mayor ni menor.',
+    notaBien:'Las tres notas del acorde (Do, Mi, Sol) están presentes.'
+  }
+};
+
+function ejemploRegla(id){
+  const d = EJEMPLOS_REGLAS[id];
+  const ej = construirEjercicio({ id:'ejemplo', acordes:d.acordes }, TONALIDADES[0], d.bajos);
+  const issue = analizar(ej, d.mal).issues.find(x => x.regla === d.regla && x.nivel === 'error');
+  const parcial = d.mal.map((v, c) => d.fijar.includes(c) ? v : { S:null, A:null, T:null });
+  const bien = resolver(ej, parcial) || resolver(ej, null);
+  const dib = (voz, res) => '<div class="pauta">' + svgPauta(ej, voz, { analisis:true, slots:false, resaltado:res }) + '</div>';
+  return '<details class="ejemplo"><summary>Ver ejemplo: ' + d.titulo + '</summary>' +
+    '<div class="ej-etiq mal">Mal</div>' + dib(d.mal, issue || null) + '<p class="helper">' + d.notaMal + '</p>' +
+    '<div class="ej-etiq bien">Bien</div>' + dib(bien, null) + '<p class="helper">' + d.notaBien + '</p>' +
+    '<p class="helper">Ejemplo en Do mayor.</p></details>';
+}
+
+const GUIA_REGLAS_HTML = `
+  <p>Estas son las reglas que revisa la app al comprobar. Un <b style="color:var(--error)">error</b> rompe una regla del estilo y hay que corregirlo; un <b style="color:#E8C06A">aviso</b> es una recomendación y no impide que el ejercicio salga bien.</p>
+
+  <h3 id="reg-movimientos">Cómo se mueven las voces</h3>
+  <p>Casi todas las reglas hablan de cómo se mueven dos voces entre un acorde y el siguiente. Hay cuatro tipos de movimiento:</p>
+  <ul style="margin-top:8px;">
+    <li><b>Contrario:</b> una voz sube y la otra baja.</li>
+    <li><b>Paralelo:</b> las dos van en el mismo sentido y a la misma distancia.</li>
+    <li><b>Directo (por semejanza):</b> las dos van en el mismo sentido, pero a distinta distancia.</li>
+    <li><b>Oblicuo:</b> una se queda en su nota y la otra se mueve.</li>
+  </ul>
+  <p style="margin-top:8px;">La receta general: mueve las voces por grado, deja quietas las notas comunes entre acordes y prefiere el movimiento contrario con el bajo.</p>
+
+  <h3 id="reg-registro">Registro de cada voz</h3>
+  <p>Cada voz tiene una zona cómoda para cantar. Fuera de ella la app marca error. Do4 es el Do central.</p>
+  <div class="cifras anchas" style="margin-top:8px;">
+    <div class="cifra"><b>Soprano</b><span>Do4 – Sol5</span></div>
+    <div class="cifra"><b>Contralto</b><span>Sol3 – Re5</span></div>
+    <div class="cifra"><b>Tenor</b><span>Do3 – Sol4</span></div>
+    <div class="cifra"><b>Bajo</b><span>Mi2 – Do4 (viene dado)</span></div>
+  </div>
+
+  <h3 id="reg-voces">Orden y distancia entre voces</h3>
+  <ul>
+    <li><b>Sin cruces (error):</b> el soprano va por encima del contralto, este del tenor y este del bajo.</li>
+    <li><b>Máximo una octava (error)</b> entre soprano y contralto, y entre contralto y tenor. Entre el tenor y el bajo puede haber más.</li>
+    <li><b>Unísono (aviso):</b> dos voces cantando la misma nota.</li>
+    <li><b>Superposición (aviso):</b> una voz pasa a la nota donde estaba su vecina en el acorde anterior.</li>
+  </ul>
+
+  <h3 id="reg-acorde">Notas del acorde y acorde completo</h3>
+  <p>El acorde sale del bajo y de su cifra: sin cifra es una tríada en estado fundamental, un 6 es primera inversión, un 6/4 segunda, y el 7 con sus inversiones es V⁷.</p>
+  <ul style="margin-top:8px;">
+    <li><b>Solo notas del acorde (error):</b> el tenor, el contralto y el soprano no pueden cantar notas ajenas.</li>
+    <li><b>Nunca omitas la tercera (error).</b> Es la nota que da el carácter mayor o menor.</li>
+    <li>En una tríada deben estar las tres notas, y con cuatro voces una se duplica. La quinta se puede omitir si triplicas la fundamental.</li>
+    <li>V⁷ puede ir completo (las cuatro notas, sin duplicar) o sin quinta y con la fundamental duplicada.</li>
+  </ul>
+  {{ej:tercera}}
+
+  <h3 id="reg-duplicar">Qué nota duplicar</h3>
+  <ul>
+    <li><b>Nunca la sensible (error).</b> Ni la séptima del acorde.</li>
+    <li><b>Estado fundamental:</b> duplica la fundamental (aviso si no).</li>
+    <li><b>Primera inversión (6):</b> puedes duplicar cualquier nota salvo la sensible.</li>
+    <li><b>Segunda inversión (6/4):</b> duplica el bajo (aviso si no).</li>
+  </ul>
+  {{ej:duplicacion}}
+
+  <h3 id="reg-paralelas">Quintas y octavas paralelas</h3>
+  <p>Es la regla más importante. Dos voces no pueden ir en el mismo sentido manteniendo entre ellas una quinta justa (Do–Sol) o una octava (Do–Do), ni sus equivalentes en otras octavas. Hacen que las voces suenen como una sola y pierden independencia. La app lo marca como <b style="color:var(--error)">error</b> entre cualquier pareja de voces, incluido el bajo.</p>
+  <p style="margin-top:8px;">Si una de las dos voces se queda quieta no hay paralelas. Para evitarlas: movimiento contrario con el bajo, notas comunes y movimiento por grado.</p>
+  {{ej:paralelas5}}
+  {{ej:paralelas8}}
+  {{ej:contrario}}
+
+  <h3 id="reg-directas">Quintas y octavas directas</h3>
+  <p>Entre las voces externas (soprano y bajo): si las dos van en el mismo sentido y llegan a una quinta o una octava con un salto del soprano, suena vacío. La app lo marca como <b style="color:#E8C06A">aviso</b>. Evítalo haciendo que el soprano llegue por grado.</p>
+
+  <h3 id="reg-saltos">Saltos</h3>
+  <ul>
+    <li>Un salto mayor que una octava es un <b>error</b>.</li>
+    <li>Un salto de séptima o más es un <b>aviso</b>: las voces superiores se mueven mejor por grado o por terceras.</li>
+  </ul>
+
+  <h3 id="reg-sensible">La sensible</h3>
+  <p>La sensible es el 7.º grado de la escala (Si en Do mayor). Tiende a subir un semitono a la tónica.</p>
+  <ul style="margin-top:8px;">
+    <li>En V → I, en el soprano debe subir a la tónica (<b>error</b> si no).</li>
+    <li>En una voz interna también puede bajar a la quinta del acorde de tónica; si no hace ninguna de las dos, es un <b>aviso</b>.</li>
+    <li>Nunca se duplica.</li>
+  </ul>
+  {{ej:sensible}}
+
+  <h3 id="reg-septima">La séptima del acorde</h3>
+  <p>En V⁷ y sus inversiones, la séptima (Fa en Do mayor) baja por grado, normalmente a la tercera del acorde siguiente (Mi). Si no baja por grado, es un <b>error</b>.</p>
+  <p style="margin-top:8px;"><b>No las confundas:</b> la <i>sensible</i> (Si) sube; la <i>séptima del acorde</i> (Fa) baja. Son dos notas distintas de V⁷.</p>
+  {{ej:septima}}
+
+  <h3 id="reg-sextacuarta">El 6/4 cadencial</h3>
+  <p>En el acorde de 6/4 antes de la dominante, las notas a una cuarta y a una sexta sobre el bajo (Do y Mi sobre Sol) son apoyaturas: deben bajar por grado a las notas del V (Si y Re). El bajo se queda quieto. Si no bajan, es un <b>error</b>.</p>
+
+  <h3 id="reg-fin">Cuando no te sale</h3>
+  <ul>
+    <li>Primero decide qué voces pueden quedarse quietas (notas comunes).</li>
+    <li>Mueve las demás por grado y, si puedes, en sentido contrario al bajo.</li>
+    <li>Toca el error en la lista: se marca en el pentagrama y tiene un enlace a su regla.</li>
+    <li>Si sigues atascado, usa <b>Pista</b> o <b>Solución</b>.</li>
+  </ul>
+`;
+
+function abrirReglas(seccion){
+  detenerAudio();
+  teoriaEstado = null;
+  $('sheet-titulo').innerHTML = '<div class="sheet-tag">Guía</div>Las reglas';
+  $('sheet-cuerpo').innerHTML = GUIA_REGLAS_HTML.replace(/\{\{ej:(\w+)\}\}/g, (_, id) => ejemploRegla(id));
+  $('sheet').classList.add('abierta');
+  $('sheet').setAttribute('aria-hidden', 'false');
+  document.body.style.overflow = 'hidden';
+  $('sheet-panel').scrollTop = 0;
+  const el = seccion && $('reg-' + seccion);
+  if(el) el.scrollIntoView({ block:'start' });
+}
+
+/* =========================================================
    EVENTOS
    ========================================================= */
 
@@ -1547,12 +1751,16 @@ $('btn-salir').addEventListener('click', () => { detenerAudio(); est.sonando = n
 
 $('btn-teoria').addEventListener('click', () => abrirTeoria(est.ej.formula.id));
 $('card-guia').addEventListener('click', () => abrirTeoria(null));
+$('card-reglas').addEventListener('click', () => abrirReglas(null));
+$('l-reglas-menu').addEventListener('click', e => { e.preventDefault(); abrirReglas(null); });
 $('sheet-cerrar').addEventListener('click', cerrarTeoria);
 $('sheet').addEventListener('click', e => { if(e.target === $('sheet')) cerrarTeoria(); });
 $('sheet').addEventListener('click', e => {
   if(e.target.closest('#b-ejemplo')) escucharEjemplo();
   const g = e.target.closest('#l-guia');
   if(g){ e.preventDefault(); abrirTeoria(null); }
+  const r = e.target.closest('#l-reglas');
+  if(r){ e.preventDefault(); abrirReglas(null); }
 });
 document.addEventListener('keydown', e => { if(e.key === 'Escape' && $('sheet').classList.contains('abierta')) cerrarTeoria(); });
 
