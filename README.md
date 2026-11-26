@@ -20,6 +20,7 @@ Página aparte, `bajocifrado.html`, pensada para el celular. Se escribe el tenor
 
 - **Comprobar:** revisa registro, voces cruzadas, espaciado, notas ajenas al acorde, acorde completo, duplicaciones, quintas y octavas paralelas (y directas), sensible, séptima y 6/4 cadencial. Toca un problema para verlo resaltado en el pentagrama.
 - **Pista y Solución:** un solucionador busca una realización sin errores que respeta lo ya escrito y la muestra como notas "fantasma" punteadas.
+- **Zoom del pentagrama:** el botón de la lupa (arriba a la izquierda del pentagrama) alterna entre 100% (se ven todos los acordes), 150% (dos acordes) y 200% (uno). La vista sigue al acorde que estás escribiendo, al que suena y al problema que tocas, y se recuerda el nivel elegido.
 - **Teoría:** cada fórmula tiene su explicación (qué es, cómo se usa, qué cuidar, qué significan las cifras y un ejemplo en Do mayor con audio). Se abre sola la primera vez que practicas cada ejercicio y después con el botón "i". Hay además una guía general de cadencias desde el menú.
 - **Guía de reglas:** explica los tipos de movimiento (contrario, paralelo, directo, oblicuo), el registro de las voces, las duplicaciones, las quintas y octavas paralelas, la sensible, la séptima y el 6/4 cadencial, con ejemplos "mal" y "bien" dibujados. Está en el menú y cada error al comprobar tiene un enlace "Ver la regla" a su sección.
 - **Primer acorde invertido:** I⁶ – IV – V – I, I⁶ – V – I e I⁶ – V⁷ – I, además de las otras inversiones de los niveles 2 y 4.
