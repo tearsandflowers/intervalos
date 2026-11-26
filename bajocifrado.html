@@ -84,6 +84,11 @@ details ul{margin:10px 0 0;padding-left:18px;font-size:13px;color:var(--muted);l
 .tool{flex:1;height:36px;border-radius:10px;border:1px solid var(--divider);background:transparent;font-size:13px;cursor:pointer;}
 .tool.on{background:var(--accent-soft);border-color:var(--accent);color:var(--accent);}
 .tool:hover{background:rgba(239,233,224,.06);}
+.pauta-wrap{position:relative;margin-top:10px;}
+.pauta-wrap .pauta{margin-top:0;}
+.zoom-btn{position:absolute;top:8px;left:8px;z-index:2;display:flex;align-items:center;gap:5px;height:30px;padding:0 10px;border-radius:999px;
+  border:1px solid var(--divider);background:rgba(18,16,14,.72);font-size:12px;cursor:pointer;}
+.zoom-btn.on{border-color:var(--accent);color:var(--accent);}
 .pauta{margin-top:10px;background:var(--surface);border-radius:var(--radius-lg);padding:6px 4px 2px;}
 .pauta svg{display:block;width:100%;height:auto;touch-action:manipulation;}
 .legend{display:flex;gap:14px;justify-content:center;font-size:11px;color:var(--muted);margin-top:8px;}
@@ -226,7 +231,12 @@ details.ejemplo summary{font-size:13px;color:var(--accent);cursor:pointer;}
       <button class="tool" id="t-nuevo">Nuevo</button>
     </div>
 
-    <div class="pauta" id="pauta"></div>
+    <div class="pauta-wrap">
+      <div class="pauta" id="pauta"></div>
+      <button class="zoom-btn" id="b-zoom" aria-label="Zoom del pentagrama">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.5 15.5L21 21"/></svg><span>100%</span>
+      </button>
+    </div>
     <div class="legend">
       <span><i style="background:var(--voz-s)"></i>Soprano</span>
       <span><i style="background:var(--voz-a)"></i>Contralto</span>
@@ -771,7 +781,8 @@ function leer(clave, base){
 }
 function escribir(clave, datos){ try{ localStorage.setItem(clave, JSON.stringify(datos)); }catch(e){} }
 
-const progreso = leer(CLAVE_PROGRESO, { ok:{}, vistas:{} });
+const progreso = leer(CLAVE_PROGRESO, { ok:{}, vistas:{}, zoom:1 });
+if(![1, 1.5, 2].includes(progreso.zoom)) progreso.zoom = 1;
 let tonElegida = null;                       // null = aleatoria
 
 let est = null;   // el ejercicio en curso
@@ -910,32 +921,41 @@ function cabeza(x, y, color, fantasma){
          '<ellipse cx="' + x + '" cy="' + y + '" rx="2.5" ry="4.1" transform="rotate(48 ' + x + ' ' + y + ')" fill="var(--surface)"/>';
 }
 
-// o: { sel, sonando, fantasma, fantasmaSolo, resaltado, analisis, slots }
+// o: { sel, sonando, fantasma, fantasmaSolo, resaltado, analisis, slots, zoom, foco }
+// zoom 1 = se ven todos los acordes; 1.5 = dos; 2 = uno (la ventana sigue a "foco")
 function svgPauta(ej, voz, o){
   const ton = ej.ton, n = ej.n;
   // Sin casillas el dibujo es más bajo; sin cifras, todavía más
   const H = o.slots ? GEO.H : (ej.acordes.some(x => x.fig) ? GEO.H - 32 : GEO.H - 62);
   const nAcc = ton.nSost + ton.nBem;
-  const xIni = 52 + nAcc * 9 + 10, xFin = GEO.W - 14;
-  const colW = (xFin - xIni) / n;
-  const cx = c => xIni + colW * (c + 0.5);
+  const xIni = 52 + nAcc * 9 + 10;
+  // Con zoom, el dibujo mide menos unidades de ancho (y por eso se ve más grande) y solo caben "vis" acordes
+  const zoom = o.zoom || 1;
+  const vis = zoom === 1 ? n : Math.min(n, zoom === 1.5 ? 2 : 1);
+  const foco = Math.max(0, Math.min(n - 1, o.foco != null ? o.foco : (o.sel ? o.sel.c : 0)));
+  // Con dos acordes se ve el anterior y el actual (para comparar el movimiento de las voces)
+  const c0 = vis >= n ? 0 : (vis === 1 ? foco : Math.max(0, Math.min(n - 2, foco - 1)));
+  const WZ = zoom === 1 ? GEO.W : GEO.W / zoom;
+  const colW = (WZ - 14 - xIni) / vis;
+  const visible = c => c >= c0 && c < c0 + vis;
+  const cx = c => xIni + colW * (c - c0 + 0.5);
   const yTop = yAgudo(38), yBot = GEO.yBB;
-  let s = '<svg viewBox="0 0 ' + GEO.W + ' ' + H + '" role="img" aria-label="Pentagrama del ejercicio">';
+  let s = '<svg viewBox="0 0 ' + WZ + ' ' + H + '" role="img" aria-label="Pentagrama del ejercicio">';
 
   // Bandas de la columna seleccionada y de la que suena
-  for(let c = 0; c < n; c++){
-    const x = xIni + colW * c;
+  for(let c = c0; c < c0 + vis; c++){
+    const x = xIni + colW * (c - c0);
     if(o.sonando === c) s += '<rect class="p-banda suena" x="' + x + '" y="28" width="' + colW + '" height="' + (H - 56) + '" rx="8"/>';
     else if(o.sel && o.sel.c === c) s += '<rect class="p-banda" x="' + x + '" y="28" width="' + colW + '" height="' + (H - 56) + '" rx="8"/>';
   }
 
   // Pentagramas
   [GEO.yTB, GEO.yBB].forEach(base => { for(let k = 0; k < 5; k++)
-    s += '<line class="p-linea" x1="12" x2="' + (GEO.W - 10) + '" y1="' + (base - k * 10) + '" y2="' + (base - k * 10) + '"/>'; });
+    s += '<line class="p-linea" x1="12" x2="' + (WZ - 10) + '" y1="' + (base - k * 10) + '" y2="' + (base - k * 10) + '"/>'; });
   s += '<line class="p-barra" x1="12" x2="12" y1="' + yTop + '" y2="' + yBot + '"/>';
   s += '<line class="p-barra" x1="' + (xIni - 6) + '" x2="' + (xIni - 6) + '" y1="' + yTop + '" y2="' + GEO.yTB + '"/>';
   s += '<line class="p-barra" x1="' + (xIni - 6) + '" x2="' + (xIni - 6) + '" y1="' + (GEO.yBB - 40) + '" y2="' + yBot + '"/>';
-  s += '<line class="p-barra" x1="' + (GEO.W - 10) + '" x2="' + (GEO.W - 10) + '" y1="' + yTop + '" y2="' + yBot + '"/>';
+  if(c0 + vis >= n) s += '<line class="p-barra" x1="' + (WZ - 10) + '" x2="' + (WZ - 10) + '" y1="' + yTop + '" y2="' + yBot + '"/>';
 
   // Claves y armadura
   s += '<text class="p-clave" font-size="41" x="16" y="' + (GEO.yTB + 2) + '">&#x1D11E;</text>';
@@ -964,22 +984,22 @@ function svgPauta(ej, voz, o){
     if(par && pos[c + par] != null && p - pos[c + par] === 1) x += 11;
     return ledgers(clave, p, x) + cabeza(x, y, COLOR_VOZ[v], fantasma);
   };
-  for(let c = 0; c < n; c++){
+  for(let c = c0; c < c0 + vis; c++){
     const V = voces(ej, voz, c);
     VOCES.forEach(v => { if(V[v] != null) s += dibujarVoz(c, v, V[v], false); });
   }
 
   // Fantasma: solución completa o una sola nota
   const fant = [];
-  if(o.fantasma) for(let c = 0; c < n; c++) ['S', 'A', 'T'].forEach(v => {
+  if(o.fantasma) for(let c = c0; c < c0 + vis; c++) ['S', 'A', 'T'].forEach(v => {
     if(voz[c][v] !== o.fantasma[c][v]) fant.push([c, v, o.fantasma[c][v]]);
   });
-  if(o.fantasmaSolo) fant.push([o.fantasmaSolo.c, o.fantasmaSolo.v, o.fantasmaSolo.m]);
+  if(o.fantasmaSolo && visible(o.fantasmaSolo.c)) fant.push([o.fantasmaSolo.c, o.fantasmaSolo.v, o.fantasmaSolo.m]);
   fant.forEach(([c, v, m]) => { s += dibujarVoz(c, v, m, true); });
 
   // Problemas resaltados
   if(o.resaltado){
-    o.resaltado.cols.forEach(c => o.resaltado.voces.forEach(v => {
+    o.resaltado.cols.filter(visible).forEach(c => o.resaltado.voces.forEach(v => {
       const V = voces(ej, voz, c);
       if(V[v] == null) return;
       const p = posicion(V[v], ton);
@@ -989,7 +1009,7 @@ function svgPauta(ej, voz, o){
   }
 
   // Cifras bajo el bajo, números romanos arriba y casillas de las voces
-  for(let c = 0; c < n; c++){
+  for(let c = c0; c < c0 + vis; c++){
     const ac = ej.acordes[c];
     const partes = ac.fig ? ac.fig.split('/') : [];
     partes.forEach((t, i) => { s += '<text class="p-fig" x="' + cx(c) + '" y="' + (GEO.yBB + 36 + i * 13) + '">' + t + '</text>'; });
@@ -1005,15 +1025,38 @@ function svgPauta(ej, voz, o){
   }
 
   // Zonas para tocar cada acorde
-  if(o.slots) for(let c = 0; c < n; c++)
-    s += '<rect class="p-hit" data-col="' + c + '" x="' + (xIni + colW * c) + '" y="28" width="' + colW + '" height="' + (H - 72) + '"/>';
+  if(o.slots) for(let c = c0; c < c0 + vis; c++)
+    s += '<rect class="p-hit" data-col="' + c + '" x="' + (xIni + colW * (c - c0)) + '" y="28" width="' + colW + '" height="' + (H - 72) + '"/>';
 
   return s + '</svg>';
 }
 
 function dibujar(){
   if(!est) return;
-  $('pauta').innerHTML = svgPauta(est.ej, est.voz, { sel:est.sel, sonando:est.sonando, fantasma:est.fantasma, fantasmaSolo:est.fantasmaSolo, resaltado:est.resaltado, analisis:est.analisis, slots:true });
+  $('pauta').innerHTML = svgPauta(est.ej, est.voz, { sel:est.sel, sonando:est.sonando, fantasma:est.fantasma, fantasmaSolo:est.fantasmaSolo, resaltado:est.resaltado, analisis:est.analisis, slots:true,
+    zoom:progreso.zoom, foco:enfoque() });
+  pintarZoom();
+}
+
+// Con zoom, qué acorde debe verse: el que suena, o el problema marcado, o el seleccionado
+function enfoque(){
+  if(est.sonando != null) return est.sonando;
+  if(est.resaltado && progreso.zoom === 1.5) return est.resaltado.cols[est.resaltado.cols.length - 1];
+  return est.sel.c;
+}
+
+const ZOOMS = [1, 1.5, 2];
+function pintarZoom(){
+  const z = progreso.zoom;
+  const b = $('b-zoom');
+  b.querySelector('span').textContent = Math.round(z * 100) + '%';
+  b.classList.toggle('on', z !== 1);
+  b.setAttribute('aria-label', 'Zoom del pentagrama: ' + Math.round(z * 100) + '%. Toca para cambiarlo.');
+}
+function cambiarZoom(){
+  progreso.zoom = ZOOMS[(ZOOMS.indexOf(progreso.zoom) + 1) % ZOOMS.length];
+  escribir(CLAVE_PROGRESO, progreso);
+  dibujar();
 }
 
 /* =========================================================
@@ -1743,6 +1786,7 @@ $('b-borrar').addEventListener('click', borrarNota);
 $('b-deshacer').addEventListener('click', deshacer);
 $('b-escuchar').addEventListener('click', escuchar);
 $('b-comprobar').addEventListener('click', comprobar);
+$('b-zoom').addEventListener('click', cambiarZoom);
 $('t-pista').addEventListener('click', pedirPista);
 $('t-sol').addEventListener('click', pedirSolucion);
 $('t-ana').addEventListener('click', () => { est.analisis = !est.analisis; pintarPractica(); });
